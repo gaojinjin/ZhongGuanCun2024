@@ -5,10 +5,13 @@ using System.IO;
 
 public class FileUploader : MonoBehaviour
 {
-    public string filePath = "C:/Users/ASUS/Desktop/b.mp4";
+    public string filePathT = "C:/Users/ASUS/Desktop/b.mp4";
     private string uploadURL = "https://kiwistudio.top/uploads/upload.php"; // 更改为你的服务器URL
     IEnumerator UploadFile(string filePath, string uploadURL)
     {
+        yield return new WaitForSeconds(1);
+        //filePath = filePath.Replace("\\", "/");
+        //filePath = filePath.Replace("//", "/");
         byte[] fileBytes = File.ReadAllBytes(filePath);
         WWWForm form = new WWWForm();
         form.AddBinaryData("file", fileBytes, Path.GetFileName(filePath));
@@ -30,11 +33,10 @@ public class FileUploader : MonoBehaviour
     void Start()
     {
         
-        
-        StartCoroutine(UploadFile(filePath, uploadURL));
+        StartCoroutine(UploadFile(filePathT, uploadURL));
     }
-    public void UpdateLoad(string filePath)
+    public void UpdateLoad(string mFilePath)
     {
-        StartCoroutine(UploadFile(filePath, uploadURL));
+        StartCoroutine(UploadFile(mFilePath, uploadURL));
     }
 }

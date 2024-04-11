@@ -8,6 +8,7 @@ using System.IO;
 
 public class RotateCube : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
+    public FileUploader fileUpload;
     private bool hasBeenLongPressed = false; // 用于判断长按是否已经被识别和执行
     public float longPressThreshold = 0.5f; // 长按的时间阈值，可以根据需要调整
     [SerializeField] CaptureBase _movieCapture = null;
@@ -34,6 +35,9 @@ public class RotateCube : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         }
         //输出最终文件路径
         Debug.Log("最终生成的文件路径：   "+ _movieCapture.LastFilePath);
+
+        //生成文件之后上传文件到服务器
+        fileUpload.UpdateLoad(_movieCapture.LastFilePath);
     }
 
     void CheckIfLongPress()
