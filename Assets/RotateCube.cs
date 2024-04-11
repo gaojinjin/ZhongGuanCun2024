@@ -12,6 +12,7 @@ public class RotateCube : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     private bool hasBeenLongPressed = false; // 用于判断长按是否已经被识别和执行
     public float longPressThreshold = 0.5f; // 长按的时间阈值，可以根据需要调整
     [SerializeField] CaptureBase _movieCapture = null;
+    
     public void OnPointerDown(PointerEventData eventData)
     {
         hasBeenLongPressed = false; // 初始设置为false
