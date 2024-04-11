@@ -798,7 +798,7 @@ MonoBehaviour:
   _forceAudioInputDeviceIndex: 0
   _manualAudioSampleRate: 48000
   _manualAudioChannelCount: 2
-  _outputTarget: 1
+  _outputTarget: 0
   _outputFolderType: 0
   _outputFolderPath: Captures
   _filenamePrefix: MovieCapture

@@ -15,7 +15,7 @@ public class RotateCube : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
         hasBeenLongPressed = false; // 初始设置为false
         Invoke("CheckIfLongPress", longPressThreshold); // 在阈值时间后检查是否为长按
-        //zhi
+        
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -27,7 +27,13 @@ public class RotateCube : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         {
             ClickAction();
         }
-        _movieCapture.StopCapture();
+        else
+        {
+            _movieCapture.StopCapture();
+            Debug.Log("退出视频录制");
+        }
+        //输出最终文件路径
+        Debug.Log("最终生成的文件路径：   "+ _movieCapture.LastFilePath);
     }
 
     void CheckIfLongPress()
@@ -39,18 +45,41 @@ public class RotateCube : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             hasBeenLongPressed = true; // 标记长按已经被识别和执行
         }
     }
-
     void ClickAction()
     {
         // 点击时执行的方法
         Debug.Log("执行截屏!");
-        /* _movieCapture.OutputTarget = OutputTarget.ImageSequence;
-         _movieCapture.StartCapture();
-         _movieCapture.StopCapture();*/
-
-
+        _movieCapture.OutputTarget = OutputTarget.ImageSequence;
+        _movieCapture.StartCapture();
+        StartCoroutine(WaitOneFrame());
     }
     
+    IEnumerator WaitOneFrame()
+    {
+        // 确保_movieCapture已经开始捕获
+        if (_movieCapture.IsCapturing())
+        {
+            // 循环检查NumEncodedFrames直到其值达到1
+            while (_movieCapture.CaptureStats.NumEncodedFrames < 1)
+            {
+                // 等待一帧
+                yield return null;
+            }
+
+            // 当NumEncodedFrames达到1时执行的操作
+            Debug.Log("NumEncodedFrames has reached 1, stopping the coroutine.");
+            // 这里可以添加其他操作，例如停止捕获等
+             _movieCapture.StopCapture();
+
+            // 停止协程
+            yield break; // 或直接使用 return;
+        }
+        else
+        {
+            Debug.LogWarning("_movieCapture has not started capturing.");
+        }
+    }
+
     void LongPressAction()
     {
         // 长按时执行的方法（只执行一次）

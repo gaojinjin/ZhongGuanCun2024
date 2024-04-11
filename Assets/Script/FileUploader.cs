@@ -5,6 +5,8 @@ using System.IO;
 
 public class FileUploader : MonoBehaviour
 {
+    public string filePath = "C:/Users/ASUS/Desktop/b.mp4";
+    private string uploadURL = "https://kiwistudio.top/uploads/upload.php"; // 更改为你的服务器URL
     IEnumerator UploadFile(string filePath, string uploadURL)
     {
         byte[] fileBytes = File.ReadAllBytes(filePath);
@@ -27,8 +29,12 @@ public class FileUploader : MonoBehaviour
     // 调用示例
     void Start()
     {
-        string filePath = "C:/Users/ASUS/Desktop/b.mp4";
-        string uploadURL = "https://kiwistudio.top/uploads/upload.php"; // 更改为你的服务器URL
+        
+        
+        StartCoroutine(UploadFile(filePath, uploadURL));
+    }
+    public void UpdateLoad(string filePath)
+    {
         StartCoroutine(UploadFile(filePath, uploadURL));
     }
 }
