@@ -23,6 +23,7 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         //click count down time button ,start count down time ,and then short down screen
         countDownBut.onClick.AddListener(() =>
         {
+            StopAllCoroutines();
             ShowShareTip(false);
             StartCoroutine(CountDownTime());
         });
@@ -33,7 +34,7 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     IEnumerator CountDownTime()
     {
-        countDownTime.text = 10.ToString();
+        
         for (int i = 10; i > 0; i--)
         {
             countDownTime.text = i.ToString();
@@ -44,6 +45,7 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     }
     public void OnPointerDown(PointerEventData eventData)
     {
+        StopAllCoroutines();
         hasBeenLongPressed = false; // 初始设置为false
         ShowShareTip(false);
         Invoke("CheckIfLongPress", longPressThreshold); // 在阈值时间后检查是否为长按
@@ -88,6 +90,7 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         _movieCapture.OutputTarget = OutputTarget.ImageSequence;
         _movieCapture.StartCapture();
         StartCoroutine(WaitOneFrame());
+        
     }
 
     IEnumerator WaitOneFrame()
@@ -121,11 +124,13 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
         // 长按时执行的方法（只执行一次）
         Debug.Log("开始录屏!");
+
         _movieCapture.OutputTarget = OutputTarget.VideoFile;
         _movieCapture.StartCapture();
     }
     void ShowShareTip(bool mValue) {
         shareGroupGo.SetActive(mValue);
+        countDownTime.text = 10.ToString();
     }
 }
 public enum RecType
