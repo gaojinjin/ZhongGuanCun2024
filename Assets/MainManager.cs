@@ -9,7 +9,7 @@ using TMPro;
 
 public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
-    public Button countDownBut;
+    public Button countDownBut,backShareBut;
     public FileUploader fileUpload;
     private bool hasBeenLongPressed = false; // 用于判断长按是否已经被识别和执行
     public float longPressThreshold = 0.5f; // 长按的时间阈值，可以根据需要调整
@@ -25,6 +25,9 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         {
             ShowShareTip(false);
             StartCoroutine(CountDownTime());
+        });
+        backShareBut.onClick.AddListener(() => {
+            ShowShareTip(false);
         });
     }
 
