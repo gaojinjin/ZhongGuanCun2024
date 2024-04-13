@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f604e3ea9bd2a14a8485a32aea8809d, type: 3}
   m_Name: Settings
   m_EditorClassIdentifier: 
-  _photoLibraryUsageDescription: 
-  _photoLibraryAddUsageDescription: 
+  _photoLibraryUsageDescription: "\u83B7\u53D6\u5BAA\u54E5\u6743\u9650AVp"
+  _photoLibraryAddUsageDescription: "\u83B7\u53D6\u6DFB\u52A0\u76F8\u518C\u6587\u4EF6\u5939\u6743\u9650AVOP"
