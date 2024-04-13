@@ -10,6 +10,7 @@ public class FileUploader : MonoBehaviour
     public EasyQRCode easyQRCode;
     IEnumerator UploadFile(string filePath, string uploadURL)
     {
+        easyQRCode.ClearRawImage();
         yield return new WaitForSeconds(1);
         //filePath = filePath.Replace("\\", "/");
         //filePath = filePath.Replace("//", "/");
