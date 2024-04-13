@@ -1690,7 +1690,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 			{
 				// [MOZ] Made the enclosing folder uniquely named, easier for extraction on iOS and simplifies scripts for processing the frames
 				string fileExtension = Utils.GetImageFileExtension(NativeImageSequenceFormat);
-				filename = GenerateTimestampedFilename(_filenamePrefix, null) + "/frame" + string.Format("-%0{0}d.{1}", _imageSequenceZeroDigits, fileExtension);
+				filename = GenerateTimestampedFilename(_filenamePrefix, null) + "/frame" + string.Format("{0}.{1}", Time.frameCount, fileExtension);
 			}
 			else if (_outputTarget == OutputTarget.NamedPipe)
 			{

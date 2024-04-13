@@ -36,8 +36,9 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         countDownTime.text = 10.ToString();
         for (int i = 10; i > 0; i--)
         {
-            yield return new WaitForSeconds(1);
             countDownTime.text = i.ToString();
+            yield return new WaitForSeconds(1);
+            
         }
         ClickAction();
     }
@@ -105,7 +106,7 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             Debug.Log("NumEncodedFrames has reached 1, stopping the coroutine.");
             // 这里可以添加其他操作，例如停止捕获等
             _movieCapture.StopCapture();
-
+            ShowShareTip(true);
             // 停止协程
             yield break; // 或直接使用 return;
         }
@@ -113,7 +114,7 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         {
             Debug.LogWarning("_movieCapture has not started capturing.");
         }
-        ShowShareTip(true);
+        
     }
 
     void LongPressAction()
