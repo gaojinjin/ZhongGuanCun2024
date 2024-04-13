@@ -65416,6 +65416,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: litizi_03
       objectReference: {fileID: 0}
+    - target: {fileID: 4198841612147008210, guid: 29645e4c107ae424e8528c98859fa00d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
