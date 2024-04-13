@@ -14,8 +14,8 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma exclude_renderers gles 
-			#pragma target 3.0
+			// #pragma exclude_renderers gles
+			#pragma target 2.5
 			#include "UnityCG.cginc"
 
 			struct appdata
@@ -32,7 +32,7 @@
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
-			
+
 			//dave hoskins hash
 			float2 hash(float2 p)
 			{
@@ -100,11 +100,11 @@
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				return o;
 			}
-			
+
 			fixed4 frag (v2f i) : SV_Target
 			{
 				i.uv += float2(0, -_Time.y * 0.1);
-				
+
 				float r = abs(frac(i.uv.y) - 0.5) * 2.0;
 				float b = 1 - r;
 				float g = 1.0 - 2 * abs(i.uv.x - 0.5);

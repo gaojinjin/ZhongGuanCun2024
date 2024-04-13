@@ -50,7 +50,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 
 	public static class EditorUtils
 	{
-		public static string[] AudioCaptureSourceNames = { "None", "Unity", "Microphone", "Manual", "Wwise" };
+		public static string[] AudioCaptureSourceNames = { "None", "Unity", "Microphone", "Manual", "Wwise", "Unity Audio Mixer" };
 		public static string[] CommonFrameRateNames = { "1", "10", "15", "23.98", "24 - CINEMA", "25 - PAL", "29.97 - NTSC", "30 - PC", "50 - PAL", "59.94 - NTSC", "60 - PC", "75", "90", "120" };
 		public static float[] CommonFrameRateValues = { 1f, 10f, 15f, 23.976f, 24f, 25f, 29.97f, 30f, 50f, 59.94f, 60f, 75f, 90f, 120f };
 

@@ -126,7 +126,13 @@ namespace RenderHeads.Media.AVProMovieCapture
 					if (length < data.Length)
 					{
 						_overflowCount++;
-						Debug.LogWarning("[AVProMovieCapture] Audio buffer overflow, may cause sync issues.  Disable this component if not recording Unity audio.");
+						// Check how many times we've overflowed and disable the warning if more than 10
+						if (_overflowCount < 10)
+						{
+							Debug.LogWarning("[AVProMovieCapture] Audio buffer has overflowed which may cause sync issues. " +
+											 "Disable this component if not recording Unity audio. " +
+											 ((_overflowCount == 9) ? "Silencing this warning now." : ("(" + _overflowCount + ").")));
+						}
 					}
 				}
 			}

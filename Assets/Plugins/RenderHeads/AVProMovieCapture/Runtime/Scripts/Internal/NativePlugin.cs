@@ -12,6 +12,18 @@ using AOT;
 
 namespace RenderHeads.Media.AVProMovieCapture
 {
+	public partial class NativePlugin
+	{
+		public const string ScriptVersion = "5.0.4";
+#if UNITY_EDITOR_OSX || (!UNITY_EDITOR && (UNITY_STANDALONE_OSX || UNITY_IOS))
+		public const string ExpectedPluginVersion = "5.0.3";
+#elif UNITY_ANDROID && !UNITY_EDITOR
+		public const string ExpectedPluginVersion = "5.0.4";
+#else
+		public const string ExpectedPluginVersion = "5.0.0";
+#endif
+	}
+
 	public enum NoneAutoCustom
 	{
 		None,
@@ -26,6 +38,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 		Microphone = 2,
 		Manual = 3,
 		Wwise = 4,
+		UnityAudioMixer = 5,
 	}
 
 	public enum StereoPacking
@@ -68,7 +81,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 	public enum ImageSequenceFormat
 	{
 		PNG,
-		JPEG,		// Apple platforms only
+		JPEG,		// Apple and Android platforms only
 		TIFF,		// Apple platforms only
 		HEIF,		// Apple platforms only
 	}
@@ -84,6 +97,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 	{
 #if UNITY_IOS && !UNITY_EDITOR
 		const string PluginName = "__Internal";
+#elif UNITY_ANDROID && !UNITY_EDITOR
+		const string PluginName = "AVProMovieCaptureNative";
 #else
 		const string PluginName = "AVProMovieCapture";
 #endif
@@ -97,17 +112,20 @@ namespace RenderHeads.Media.AVProMovieCapture
 			Windows = 0,
 			macOS = 1,
 			iOS = 2,
+			Android = 3,
 
-			Count = 3,
+			Count = 4,
 		}
 
-		public static string[] PlatformNames = { "Windows", "macOS", "iOS" };
+		public static string[] PlatformNames = { "Windows", "macOS", "iOS", "Android" };
 
 		// The Apple platforms have a fixed set of known codecs
 		public static readonly string[] VideoCodecNamesMacOS = { "H264", "HEVC", "MJPEG", "ProRes 4:2:2", "ProRes 4:4:4:4" };
 		public static readonly string[] AudioCodecNamesMacOS = { "AAC", "FLAC", "Apple Lossless", "Linear PCM", "Uncompresssed" };
 		public static readonly string[] VideoCodecNamesIOS = { "H264", "HEVC", "MJPEG" };
 		public static readonly string[] AudioCodecNamesIOS = { "AAC", "FLAC", "Apple Lossless", "Linear PCM", "Uncompresssed" };
+		public static readonly string[] VideoCodecNamesAndroid = { "H264", "HEVC"/*, "VP8", "VP9"*/ };
+		public static readonly string[] AudioCodecNamesAndroid = { "AAC"/*, "OPUS", "FLAC"*/ };
 
 		public enum PixelFormat
 		{
@@ -117,13 +135,6 @@ namespace RenderHeads.Media.AVProMovieCapture
 			YCbCr422_UYVY,
 			YCbCr422_HDYC,
 		}
-
-		public const string ScriptVersion = "4.7.11";
-#if UNITY_EDITOR_OSX || (!UNITY_EDITOR && (UNITY_STANDALONE_OSX || UNITY_IOS))
-		public const string ExpectedPluginVersion = "4.7.11";
-#else
-		public const string ExpectedPluginVersion = "4.7.7";
-#endif
 
 		public const int MaxRenderWidth = 16384;
 		public const int MaxRenderHeight = 16384;
@@ -136,6 +147,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 		{
 			CaptureFrameBuffer = 0,
 			FreeResources = 1,
+			Setup = 2,
 		}
 
 		private static System.IntPtr _renderEventFunction = System.IntPtr.Zero;
@@ -143,14 +155,22 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		public static void RenderThreadEvent(PluginEvent renderEvent, int handle)
 		{
-			if (renderEvent == PluginEvent.CaptureFrameBuffer)
+			switch (renderEvent)
 			{
-				GL.IssuePluginEvent(RenderCaptureEventFunction, PluginID | (int)renderEvent | handle);
-			}
-			else if (renderEvent == PluginEvent.FreeResources)
-			{
-				int eventId = PluginID | (int)renderEvent;
-				GL.IssuePluginEvent(RenderFreeEventFunction, eventId);
+				case PluginEvent.CaptureFrameBuffer:
+					GL.IssuePluginEvent(RenderCaptureEventFunction, PluginID | (int)renderEvent | handle);
+					break;
+				case PluginEvent.FreeResources:
+					GL.IssuePluginEvent(RenderFreeEventFunction, PluginID | (int)renderEvent);
+					break;
+				case PluginEvent.Setup:
+				#if UNITY_ANDROID && !UNITY_EDITOR
+					if (RenderSetupEventFunction != System.IntPtr.Zero)
+					{
+						GL.IssuePluginEvent(RenderSetupEventFunction, PluginID | (int)renderEvent | handle);
+					}
+				#endif
+					break;
 			}
 		}
 
@@ -166,6 +186,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 				return _renderEventFunction;
 			}
 		}
+
 		private static System.IntPtr RenderFreeEventFunction
 		{
 			get
@@ -181,8 +202,29 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		[DllImport(PluginName, EntryPoint="AVPMC_GetRenderEventFunc")]
 		private static extern System.IntPtr GetRenderEventFunc();
+
 		[DllImport(PluginName, EntryPoint="AVPMC_GetFreeResourcesEventFunc")]
 		private static extern System.IntPtr GetFreeResourcesEventFunc();
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+		private static System.IntPtr _setupEventFunction = System.IntPtr.Zero;
+
+		private static System.IntPtr RenderSetupEventFunction
+		{
+			get
+			{
+				if (_setupEventFunction == System.IntPtr.Zero)
+				{
+					_setupEventFunction = GetSetupEventFunc();
+				}
+				return _setupEventFunction;
+			}
+		}
+
+		[DllImport(PluginName, EntryPoint="AVPMC_GetSetupEventFunc")]
+		private static extern System.IntPtr GetSetupEventFunc();
+#endif
+
 #endregion
 
 #if UNITY_EDITOR_OSX || (!UNITY_EDITOR && (UNITY_STANDALONE_OSX || UNITY_IOS))
@@ -298,6 +340,12 @@ namespace RenderHeads.Media.AVProMovieCapture
 		[return: MarshalAs(UnmanagedType.U1)]
 		public static extern bool IsTrialVersion();
 
+		public static bool IsBasicEdition()
+		{
+			string version = NativePlugin.GetPluginVersionString();
+			return version.IndexOf("basic", StringComparison.OrdinalIgnoreCase) >= 0;
+		}
+
 		//////////////////////////////////////////////////////////////////////////
 		// Video Codecs
 
@@ -377,6 +425,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 		{
 #if UNITY_EDITOR_OSX || (!UNITY_EDITOR && (UNITY_STANDALONE_OSX || UNITY_IOS))
 			return MediaApi.AVFoundation;
+#elif UNITY_ANDROID && !UNITY_EDITOR
+			return MediaApi.MediaCodec;
 #else
 			return MediaApi.Unknown;
 #endif
@@ -399,7 +449,6 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		//////////////////////////////////////////////////////////////////////////
 		// Create the Recorder
-
 		[DllImport(PluginName, EntryPoint="AVPMC_CreateRecorderVideo")]
 		public static extern int CreateRecorderVideo([MarshalAs(UnmanagedType.LPWStr)] string filename, uint width, uint height, float frameRate, int format,
 												[MarshalAs(UnmanagedType.U1)] bool isRealTime, [MarshalAs(UnmanagedType.U1)] bool isTopDown, int videoCodecIndex,
@@ -449,12 +498,12 @@ namespace RenderHeads.Media.AVProMovieCapture
 		[DllImport(PluginName, EntryPoint="AVPMC_SetTexturePointer")]
 		public static extern void SetTexturePointer(int handle, System.IntPtr texture);
 
-		#if false
+#if false
 
 		[DllImport(PluginName, EntryPoint="AVPMC_SetColourBuffer")]
 		public static extern void SetColourBuffer(int handle, System.IntPtr buffer);
 
-		#endif
+#endif
 
 		//////////////////////////////////////////////////////////////////////////
 		// Destroy recorder

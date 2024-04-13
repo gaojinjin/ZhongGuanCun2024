@@ -34,7 +34,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		private bool RequiresResolve(Texture texture)
 		{
-#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || (UNITY_IOS && !UNITY_EDITOR)
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || (UNITY_IOS && !UNITY_EDITOR) || (UNITY_ANDROID)
 			// Texture resolve wholly unnecessary on macOS and iOS
 			return false;
 #else

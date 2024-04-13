@@ -77,7 +77,15 @@ namespace RenderHeads.Media.AVProMovieCapture
 			public SphericalVideoLayout sphericalVideoLayout;
 			#endif
 
+			public bool applyMoveCaptureFile;
+			public string finalCaptureFilePath;
+
 			public bool HasOptions()
+			{
+				return (RequiresProcessing() || applyFastStart);
+			}
+
+			public bool RequiresProcessing()
 			{
 				return (applyFastStart || applyStereoMode || applySphericalVideoLayout);
 			}
@@ -87,6 +95,9 @@ namespace RenderHeads.Media.AVProMovieCapture
 				applyFastStart = false;
 				applyStereoMode = false;
 				applySphericalVideoLayout = false;
+
+				applyMoveCaptureFile = false;
+				finalCaptureFilePath = null;
 			}
 		}
 
@@ -180,23 +191,38 @@ namespace RenderHeads.Media.AVProMovieCapture
 				Debug.LogError("File not found: " + filePath);
 				return false;
 			}
-			string tempPath = filePath + "-" + System.Guid.NewGuid() + ".temp";
-			
-			bool result = ProcessFile(filePath, tempPath, options);
-			if (result)
+
+			bool result = true;
+
+			if(options.RequiresProcessing())
 			{
-				string backupPath = filePath + "-" + System.Guid.NewGuid() + ".backup";
-				File.Move(filePath, backupPath);
-				File.Move(tempPath, filePath);
-				if (!keepBackup)
+				string tempPath = filePath + "-" + System.Guid.NewGuid() + ".temp";
+			
+				result = ProcessFile(filePath, tempPath, options);
+				if (result)
 				{
-					File.Delete(backupPath);
+					string backupPath = filePath + "-" + System.Guid.NewGuid() + ".backup";
+					File.Move(filePath, backupPath);
+					File.Move(tempPath, filePath);
+					if (!keepBackup)
+					{
+						File.Delete(backupPath);
+					}
+				}
+
+				if (File.Exists(tempPath))
+				{
+					File.Delete(tempPath);
 				}
 			}
 
-			if (File.Exists(tempPath))
+			if(result)
 			{
-				File.Delete(tempPath);
+				// Move the captured video somewhere else?
+				if(options.applyMoveCaptureFile && options.finalCaptureFilePath != null)
+				{
+					File.Move(filePath, options.finalCaptureFilePath);
+				}
 			}
 
 			return result;

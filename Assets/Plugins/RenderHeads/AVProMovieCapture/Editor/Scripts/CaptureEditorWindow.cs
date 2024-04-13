@@ -57,6 +57,11 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 		private static bool _isInit = false;
 		private static bool _isFailedInit = false;
 		private static bool _showAlpha = false;
+
+		private static int _superSizeIndex = 0;
+		[SerializeField] string _screenshotFolder = "Captures/Shots/";
+		[SerializeField] EditorScreenshot.Options _screenshotOptions = new EditorScreenshot.Options();
+
 		private static string[] _fileExtensions = new string[0];
 		private static string[] _audioDeviceNames = new string[0];
 
@@ -228,6 +233,9 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 #endif
 		private SerializedProperty _propImageHintsSupportTransparency;
 
+		private SerializedProperty _propScreenshotFolder;
+		private SerializedProperty _propScreenshotOptions;
+
 		[SerializeField] EncoderHints _encoderHints = new EncoderHints();
 
 		// TODO: we should actually be saving these parameters per-scene...
@@ -379,6 +387,9 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 #endif
 				_propImageHintsSupportTransparency = _so.AssertFindProperty("_encoderHints.imageHints.supportTransparency");
 
+				_propScreenshotOptions = _so.AssertFindProperty("_screenshotOptions");
+				_propScreenshotFolder = _so.AssertFindProperty("_screenshotFolder");
+
 				this.Repaint();
 			}
 		}
@@ -482,6 +493,11 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 			}
 
 			_showAlpha = EditorPrefs.GetBool(SettingsPrefix + "ShowAlphaChannel", false);
+			_superSizeIndex = EditorPrefs.GetInt(SettingsPrefix + "SuperSizeIndex", 0);
+			_screenshotFolder = EditorPrefs.GetString(SettingsPrefix + "ScreenshotFolder", _screenshotFolder);
+			_screenshotOptions.exrPrecision = (EditorScreenshot.ExrPrecision)EditorPrefs.GetInt(SettingsPrefix + "ScreenshotOptions.ExrPrecision", (int)_screenshotOptions.exrPrecision);
+			_screenshotOptions.exrCompression = (EditorScreenshot.ExrCompression)EditorPrefs.GetInt(SettingsPrefix + "ScreenshotOptions.ExrCompression", (int)_screenshotOptions.exrCompression);
+			_screenshotOptions.jpgQuality = EditorPrefs.GetInt(SettingsPrefix + "ScreenshotOptions.JpgQuality", (int)_screenshotOptions.jpgQuality);
 
 			// Codecs
 			_videoCodec = CodecManager.VideoCodecs.FindCodec(EditorPrefs.GetString(SettingsPrefix + "VideoCodecName", ""));
@@ -576,6 +592,11 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 			EditorPrefs.SetBool(SettingsPrefix + "EncoderHints.ImageHints.SupportTransparency", _encoderHints.imageHints.supportTransparency);
 
 			EditorPrefs.SetBool(SettingsPrefix + "ShowAlphaChannel", _showAlpha);
+			EditorPrefs.SetInt(SettingsPrefix + "SuperSizeIndex", _superSizeIndex);
+			EditorPrefs.SetString(SettingsPrefix + "ScreenshotFolder", _screenshotFolder);
+			EditorPrefs.SetInt(SettingsPrefix + "ScreenshotOptions.ExrPrecision", (int)_screenshotOptions.exrPrecision);
+			EditorPrefs.SetInt(SettingsPrefix + "ScreenshotOptions.ExrCompression", (int)_screenshotOptions.exrCompression);
+			EditorPrefs.SetInt(SettingsPrefix + "ScreenshotOptions.JpgQuality", _screenshotOptions.jpgQuality);
 
 			// Camera selector
 			EditorPrefs.SetInt(SelectorPrefix + "SelectBy", (int)_selectBy);
@@ -1183,7 +1204,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 #endif
 
 			foreach (IMediaApiItem item in items)
-			{				
+			{
 				bool isEnabled = (matchMediaType == null || matchMediaType.MediaApi == item.MediaApi);
 #if UNITY_EDITOR_WIN
 				if (isEnabled && item.MediaApi != lastApi)
@@ -1374,7 +1395,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 			// Configuration
 			else if (_capture == null)
 			{
-				string[] _toolNames = { "Settings", "Help" };
+				string[] _toolNames = { "Settings", "Screenshot", "Help" };
 				_selectedTool = GUILayout.Toolbar(_selectedTool, _toolNames);
 				switch (_selectedTool)
 				{
@@ -1385,6 +1406,11 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 						EditorGUILayout.EndScrollView();
 						break;
 					case 1:
+						_scroll = EditorGUILayout.BeginScrollView(_scroll);
+						DrawConfigGUI_Screenshot();
+						EditorGUILayout.EndScrollView();
+						break;
+					case 2:
 						_scroll = EditorGUILayout.BeginScrollView(_scroll);
 						DrawConfigGUI_About();
 						EditorGUILayout.EndScrollView();
@@ -1561,7 +1587,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 			}
 
 			GUILayout.Label("Output", EditorStyles.boldLabel);
-			EditorGUILayout.BeginVertical("box");
+			EditorGUILayout.BeginVertical(GUI.skin.box);
 			EditorGUI.indentLevel++;
 
 			GUILayout.Label("Recording to: " + System.IO.Path.GetFileName(capture.LastFilePath), EditorStyles.wordWrappedLabel);
@@ -1607,7 +1633,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 			GUILayout.Space(8.0f);
 
 			GUILayout.Label("Stats", EditorStyles.boldLabel);
-			EditorGUILayout.BeginVertical("box");
+			EditorGUILayout.BeginVertical(GUI.skin.box);
 			EditorGUI.indentLevel++;
 
 			if (capture.CaptureStats.FPS > 0f)
@@ -1645,7 +1671,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 		public void DrawMoreCapturingGUI()
 		{
 			GUILayout.Label("More Stats", EditorStyles.boldLabel);
-			EditorGUILayout.BeginVertical("box");
+			EditorGUILayout.BeginVertical(GUI.skin.box);
 			EditorGUI.indentLevel++;
 
 			EditorGUILayout.LabelField("File Size", ((float)_lastFileSize / (1024f * 1024f)).ToString("F1") + "MB");
@@ -1695,6 +1721,256 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 
 			GUILayout.FlexibleSpace();
 		}
+
+		public void DrawConfigGUI_Screenshot()
+		{
+			EditorGUILayout.PropertyField(_propScreenshotFolder, new GUIContent("Folder"));
+			EditorGUILayout.PropertyField(_propScreenshotOptions, new GUIContent("Format Options"));
+			EditorGUILayout.Space();
+
+			string folder = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../" + _screenshotFolder));
+
+			{
+				EditorGUILayout.BeginVertical(GUI.skin.box);
+
+				int superSize = 1;
+				switch (_superSizeIndex)
+				{
+					case 1:
+					superSize = 2;
+					break;
+					case 2:
+					superSize = 4;
+					break;
+				}
+				Vector2 captureSize = EditorScreenshot.GetGameViewSize() * superSize;
+
+				GUILayout.BeginHorizontal();
+				GUILayout.Label("GameView", EditorStyles.boldLabel, GUILayout.ExpandWidth(false));
+				GUILayout.Label(string.Format("({0}x{1})", (int)captureSize.x, (int)captureSize.y));
+				GUILayout.EndHorizontal();
+				EditorGUILayout.Space();
+
+				GUILayout.BeginHorizontal();
+				GUILayout.Label("Supersample");
+				_superSizeIndex = GUILayout.SelectionGrid(_superSizeIndex, new string[]{"1x", "2x", "4x"}, 4);
+				GUILayout.EndHorizontal();
+
+				GUILayout.BeginHorizontal();
+				if (GUILayout.Button("Capture PNG"))
+				{
+					EditorScreenshot.ImageFormat format = EditorScreenshot.ImageFormat.PNG;
+					string filePath = EditorScreenshot.GenerateFilename("Screen", format, (int)captureSize.x, (int)captureSize.y);
+					filePath = EditorScreenshot.GenerateFilePath(folder, filePath);
+					EditorScreenshot.GameViewToPNG(filePath, superSize);
+				}
+
+				{
+					EditorGUI.BeginDisabledGroup(!EditorScreenshot.SupportsGameViewJPGTGAEXR());
+					if (GUILayout.Button("Capture JPG"))
+					{
+						EditorScreenshot.ImageFormat format = EditorScreenshot.ImageFormat.JPG;
+						string filePath = EditorScreenshot.GenerateFilename("Screen", format, (int)captureSize.x, (int)captureSize.y);
+						filePath = EditorScreenshot.GenerateFilePath(folder, filePath);
+						EditorScreenshot.GameViewToFile(filePath, format, _screenshotOptions, superSize);
+					}
+					GUILayout.EndHorizontal();
+					GUILayout.BeginHorizontal();
+
+					{
+						EditorGUI.BeginDisabledGroup(!EditorScreenshot.SupportsTGA());
+						if (GUILayout.Button("Capture TGA"))
+						{
+							EditorScreenshot.ImageFormat format = EditorScreenshot.ImageFormat.TGA;
+							string filePath = EditorScreenshot.GenerateFilename("Screen", format, (int)captureSize.x, (int)captureSize.y);
+							filePath = EditorScreenshot.GenerateFilePath(folder, filePath);
+							EditorScreenshot.GameViewToFile(filePath, format, _screenshotOptions, superSize);
+						}
+						EditorGUI.EndDisabledGroup();
+					}
+					{
+						EditorGUI.BeginDisabledGroup(!EditorScreenshot.SupportsGameViewEXR());
+						if (GUILayout.Button("Capture EXR"))
+						{
+							EditorScreenshot.ImageFormat format = EditorScreenshot.ImageFormat.EXR;
+							string filePath = EditorScreenshot.GenerateFilename("Screen", format, (int)captureSize.x, (int)captureSize.y);
+							filePath = EditorScreenshot.GenerateFilePath(folder, filePath);
+							EditorScreenshot.GameViewToFile(filePath, format, _screenshotOptions, superSize);
+						}
+						EditorGUI.EndDisabledGroup();
+					}
+					EditorGUI.EndDisabledGroup();
+				}
+				GUILayout.EndHorizontal();
+				GUILayout.EndVertical();
+			}
+
+			EditorGUILayout.Space();
+
+			{
+				EditorGUILayout.BeginVertical(GUI.skin.box);
+				GUILayout.BeginHorizontal();
+				RenderTexture sceneViewTexture = EditorScreenshot.GetSceneViewTexture();
+				GUILayout.Label("Scene View", EditorStyles.boldLabel, GUILayout.ExpandWidth(false));
+				if (sceneViewTexture != null)
+				{
+					GUILayout.Label(string.Format("({0}x{1})", sceneViewTexture.width, sceneViewTexture.height));
+				}
+				else
+				{
+					GUI.color = Color.red;
+					GUILayout.Label("*Missing*", EditorStyles.boldLabel);
+					GUI.color = Color.white;
+				}
+				GUILayout.EndHorizontal();
+
+				GUILayout.BeginHorizontal();
+				if (GUILayout.Button("Capture PNG"))
+				{
+					EditorScreenshot.SceneViewToFile("Scene", folder, EditorScreenshot.ImageFormat.PNG, _screenshotOptions);
+				}
+				if (GUILayout.Button("Capture JPG"))
+				{
+					EditorScreenshot.SceneViewToFile("Scene", folder, EditorScreenshot.ImageFormat.JPG, _screenshotOptions);
+				}
+				GUILayout.EndHorizontal();
+				GUILayout.BeginHorizontal();
+				if (GUILayout.Button("Capture TGA"))
+				{
+					EditorScreenshot.SceneViewToFile("Scene", folder, EditorScreenshot.ImageFormat.TGA, _screenshotOptions);
+				}
+				if (GUILayout.Button("Capture EXR"))
+				{
+					EditorScreenshot.SceneViewToFile("Scene", folder, EditorScreenshot.ImageFormat.EXR, _screenshotOptions);
+				}
+				GUILayout.EndHorizontal();
+				GUILayout.EndVertical();
+			}
+
+			EditorGUILayout.Space();
+
+			{
+				GUILayout.BeginVertical(GUI.skin.box);
+				GUILayout.Label("Cameras", EditorStyles.boldLabel);
+				if (GUILayout.Button("Refresh"))
+				{
+					_cameras = Resources.FindObjectsOfTypeAll<Camera>();
+				}
+				if (_cameras != null && _cameras.Length > 0)
+				{
+					_cameraIndex = (int)GUILayout.HorizontalSlider(_cameraIndex, 0, _cameras.Length - 1, GUILayout.ExpandWidth(true));
+					EditorGUILayout.Space();
+
+					Camera camera = _cameras[_cameraIndex];
+
+					string desc = _cameraIndex + "/" + _cameras.Length + ": ";
+					Texture texture = Texture2D.blackTexture;
+					if (camera != null)
+					{
+						desc += camera.name;
+						if (camera.targetTexture != null)
+						{
+							desc += " " + camera.targetTexture.width + "x" + camera.targetTexture.height;
+							#if UNITY_2019_1_OR_NEWER
+							desc += " " + camera.targetTexture.graphicsFormat;
+							#endif
+							texture = camera.targetTexture;
+						}
+					}
+					GUILayout.Label(desc);
+					Rect textureRect = GUILayoutUtility.GetRect(256f, 256f);
+					GUI.DrawTexture(textureRect, texture, ScaleMode.ScaleToFit);
+				}
+
+				if (_cameras != null && _cameras.Length > 0)
+				{
+					RenderTexture rt = _cameras[_cameraIndex].targetTexture;
+					if (rt != null)
+					{
+						GUILayout.BeginHorizontal();
+						if (GUILayout.Button("Capture PNG"))
+						{
+							EditorScreenshot.ImageFormat format = EditorScreenshot.ImageFormat.PNG;
+							string filePath = EditorScreenshot.GenerateFilename("RT-" + rt.name, format, rt.width, rt.height);
+							filePath = EditorScreenshot.GenerateFilePath(folder, filePath);
+							EditorScreenshot.RenderTextureToFile(filePath, format, _screenshotOptions, rt);
+						}
+						if (GUILayout.Button("Capture EXR"))
+						{
+							EditorScreenshot.ImageFormat format = EditorScreenshot.ImageFormat.EXR;
+							string filePath = EditorScreenshot.GenerateFilename("RT-" + rt.name, format, rt.width, rt.height);
+							filePath = EditorScreenshot.GenerateFilePath(folder, filePath);
+							EditorScreenshot.RenderTextureToFile(filePath, format, _screenshotOptions, rt);
+						}
+						GUILayout.EndHorizontal();
+					}
+				}
+				GUILayout.EndVertical();
+			}
+
+			EditorGUILayout.Space();
+
+			{
+				GUILayout.BeginVertical(GUI.skin.box);
+				GUILayout.Label("RenderTextures", EditorStyles.boldLabel);
+				if (GUILayout.Button("Refresh"))
+				{
+					_rts = Resources.FindObjectsOfTypeAll<RenderTexture>();
+				}
+				if (_rts != null && _rts.Length > 0)
+				{
+					_rtIndex = (int)GUILayout.HorizontalSlider(_rtIndex, 0, _rts.Length - 1, GUILayout.ExpandWidth(true));
+					EditorGUILayout.Space();
+
+					RenderTexture rt = _rts[_rtIndex];
+
+					string desc = _rtIndex + "/" + _rts.Length + ": ";
+					Texture texture = Texture2D.blackTexture;
+					if (rt != null)
+					{
+						desc += rt.name + " " + rt.width + "x" + rt.height;
+						#if UNITY_2019_1_OR_NEWER
+						desc += " " + rt.graphicsFormat;
+						#endif
+						texture = rt;
+					}
+
+					GUILayout.Label(desc);
+					Rect textureRect = GUILayoutUtility.GetRect(256f, 256f);
+					GUI.DrawTexture(textureRect, texture, ScaleMode.ScaleToFit);
+				}
+
+				if (_rts != null && _rts.Length > 0)
+				{
+					RenderTexture rt = _rts[_rtIndex];
+					if (rt != null)
+					{
+						GUILayout.BeginHorizontal();
+						if (GUILayout.Button("Capture PNG"))
+						{
+							EditorScreenshot.ImageFormat format = EditorScreenshot.ImageFormat.PNG;
+							string filePath = EditorScreenshot.GenerateFilename("RT-" + rt.name, format, rt.width, rt.height);
+							filePath = EditorScreenshot.GenerateFilePath(folder, filePath);
+							EditorScreenshot.RenderTextureToFile(filePath, format, _screenshotOptions, rt);
+						}
+						if (GUILayout.Button("Capture EXR"))
+						{
+							EditorScreenshot.ImageFormat format = EditorScreenshot.ImageFormat.EXR;
+							string filePath = EditorScreenshot.GenerateFilename("RT-" + rt.name, format, rt.width, rt.height);
+							filePath = EditorScreenshot.GenerateFilePath(folder, filePath);
+							EditorScreenshot.RenderTextureToFile(filePath, format, _screenshotOptions, rt);
+						}
+						GUILayout.EndHorizontal();
+					}
+				}
+				GUILayout.EndVertical();
+			}
+		}
+
+		private static int _rtIndex;
+		private static int _cameraIndex;
+		private static RenderTexture[] _rts;
+		private static Camera[] _cameras;
 
 		public static void DrawConfigGUI_About()
 		{
@@ -1807,7 +2083,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 		private void DrawConfigGUI_Capture()
 		{
 			//GUILayout.Label("Capture", EditorStyles.boldLabel);
-			EditorGUILayout.BeginVertical("box");
+			EditorGUILayout.BeginVertical(GUI.skin.box);
 			//EditorGUI.indentLevel++;
 
 			// Time
@@ -2059,7 +2335,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 		private void DrawConfigGUI_Encoding()
 		{
 			//GUILayout.Label("Target", EditorStyles.boldLabel);
-			EditorGUILayout.BeginVertical("box");
+			EditorGUILayout.BeginVertical(GUI.skin.box);
 			//EditorGUI.indentLevel++;
 
 			EditorUtils.EnumAsDropdown("Output Target", _propOutputTarget, EditorUtils.OutputTargetNames);
@@ -2171,7 +2447,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 					}
 #endif
 					EditorGUILayout.PropertyField(_propVideoHintsQuality);
-					EditorGUILayout.PropertyField(_propVideoHintsKeyframeInterval);				
+					EditorGUILayout.PropertyField(_propVideoHintsKeyframeInterval);
 					EditorGUILayout.PropertyField(_propVideoHintsSupportTransparency);
 
 #if UNITY_EDITOR_WIN
@@ -2220,7 +2496,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 		private void DrawConfigGUI_Visual()
 		{
 			//GUILayout.Label("Video", EditorStyles.boldLabel);
-			EditorGUILayout.BeginVertical("box");
+			EditorGUILayout.BeginVertical(GUI.skin.box);
 			//EditorGUI.indentLevel++;
 
 			{
@@ -2449,12 +2725,12 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 		private void DrawConfigGUI_MotionBlur()
 		{
 			EditorGUI.BeginDisabledGroup(IsCaptureRealTime());
-			//EditorGUILayout.BeginVertical("box");
+			//EditorGUILayout.BeginVertical(GUI.skin.box);
 			//EditorGUI.indentLevel++;
 
 			GUILayout.Space(8f);
 			GUILayout.Label("Motion Blur (beta)", EditorStyles.boldLabel);
-			//EditorGUILayout.BeginVertical("box");
+			//EditorGUILayout.BeginVertical(GUI.skin.box);
 			//EditorGUI.indentLevel++;
 
 			if (IsCaptureRealTime())
@@ -2490,7 +2766,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 
 			if (showAudioSources)
 			{
-				EditorGUILayout.BeginVertical("box");
+				EditorGUILayout.BeginVertical(GUI.skin.box);
 				_audioCaptureSource = (AudioCaptureSource)EditorGUILayout.EnumPopup("Audio Source", _audioCaptureSource);
 
 				if (_audioCaptureSource != AudioCaptureSource.None)
@@ -2530,7 +2806,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 						showAudioOptions = false;
 					}
 					#endif
-					
+
 					if (showAudioOptions)
 					{
 						if (_audioCaptureSource == AudioCaptureSource.Microphone)

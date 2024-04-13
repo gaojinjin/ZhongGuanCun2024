@@ -494,7 +494,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 			GenerateFilename();
 			if (base.PrepareCapture())
 			{
-				UpdateInjectionOptions(StereoPacking.LeftRight, _settings.render180Degrees?SphericalVideoLayout.Equirectangular180:SphericalVideoLayout.Equirectangular360);
+				UpdateInjectionOptions(StereoPacking.TopBottom, _settings.render180Degrees?SphericalVideoLayout.Equirectangular180:SphericalVideoLayout.Equirectangular360);
 				return true;
 			}
 			return false;

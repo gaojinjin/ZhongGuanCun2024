@@ -47,6 +47,22 @@ namespace RenderHeads.Media.AVProMovieCapture.Demos
 				yield return Application.RequestUserAuthorization(UserAuthorization.WebCam);
 			}
 
+			// Make sure we're authorised for using the microphone. On iOS the OS will forcibly
+			// close the application if authorisation has not been granted. Make sure the
+			// "Microphone Usage Description" field has been filled in the player settings.
+			// if (_capture.AudioCaptureSource == AudioCaptureSource.Microphone)
+			{
+				if (!Application.HasUserAuthorization(UserAuthorization.Microphone))
+				{
+					yield return Application.RequestUserAuthorization(UserAuthorization.Microphone);
+				}
+				if (Application.HasUserAuthorization(UserAuthorization.Microphone))
+				{
+					// On iOS modified the audio session to allow recording from the microphone.
+					NativePlugin.SetMicrophoneRecordingHint(true);
+				}
+			}
+
 			// Create instance data per webcam
 			int numCams = WebCamTexture.devices.Length;
 			_instances = new Instance[numCams];
@@ -74,6 +90,9 @@ namespace RenderHeads.Media.AVProMovieCapture.Demos
 		{
 			// NOTE: WebcamTexture can be slow for high resolutions, this can cause issues with audio-video sync.
 			// Our plugins AVPro Live Camera or AVPro DeckLink can be used to capture high resolution devices
+			#if UNITY_2018_4_OR_NEWER
+			Debug.Log($"_webcamResolutionWidth: {_webcamResolutionWidth}, _webcamResolutionHeight: {_webcamResolutionHeight}, _webcamFrameRate: {_webcamFrameRate}");
+			#endif
 			instance.texture = new WebCamTexture(instance.name, _webcamResolutionWidth, _webcamResolutionHeight, _webcamFrameRate);
 			instance.texture.Play();
 			if (instance.texture.isPlaying)

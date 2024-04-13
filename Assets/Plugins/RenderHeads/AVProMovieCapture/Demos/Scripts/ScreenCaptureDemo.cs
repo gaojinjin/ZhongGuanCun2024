@@ -23,9 +23,9 @@ namespace RenderHeads.Media.AVProMovieCapture.Demos
 
 		private IEnumerator Start()
 		{
-			#if UNITY_IOS
+#if UNITY_IOS
 			Application.targetFrameRate = 60;
-			#endif
+#endif
 			// Play music track
 			if (_audioBG != null)
 			{
@@ -94,7 +94,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Demos
 				}
 #endif
 
-#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_IOS
+#if UNITY_EDITOR_OSX || (!UNITY_EDITOR && (UNITY_STANDALONE_OSX || UNITY_IOS || UNITY_ANDROID))
 				// Make sure we're authorised for using the microphone. On iOS the OS will forcibly
 				// close the application if authorisation has not been granted. Make sure the
 				// "Microphone Usage Description" field has been filled in the player settings.
@@ -156,7 +156,12 @@ namespace RenderHeads.Media.AVProMovieCapture.Demos
 		{
 			#if (!ENABLE_INPUT_SYSTEM || ENABLE_LEGACY_INPUT_MANAGER)
 			// Press the S key to trigger audio and background color change - useful for testing A/V sync
+#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+			bool bTouch = (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended);
+			if (bTouch)
+#else
 			if (Input.GetKeyDown(KeyCode.S))
+#endif
 			{
 				if (_audioHit != null && _capture != null && _capture.IsCapturing())
 				{

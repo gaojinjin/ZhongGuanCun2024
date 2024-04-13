@@ -65,7 +65,7 @@ MCPhotoLibraryAuthorisationStatus AVPMC_PhotoLibraryAuthorisationStatus(MCPhotoL
 void  AVPMC_RequestPhotoLibraryAuthorisation(MCPhotoLibraryAccessLevel level, MCRequestPhotoLibraryAuthorisationCallback callback);
 
 // Ambisonic support
-MCAmbisonicSourceRef AVPMC_AddAmbisonicSourceInstance(int maxCoefficients);
+MCAmbisonicSourceRef _Nullable AVPMC_AddAmbisonicSourceInstance(int maxCoefficients);
 void  AVPMC_RemoveAmbisonicSourceInstance(MCAmbisonicSourceRef source);
 void  AVPMC_UpdateAmbisonicWeights(MCAmbisonicSourceRef source, float azimuth, float elevation, MCAmbisonicOrder ambisonicOrder, MCAmbisonicChannelOrder channelOrder, float *weights);
 void  AVPMC_EncodeMonoToAmbisonic(MCAmbisonicSourceRef source, float *inSamples, int inOffset, int inCount, int numChannels, void *outSamples, int outOffset, int outCount, MCAmbisonicOrder ambisonicOrder);

@@ -62,6 +62,16 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 					ShowAbortDialog(message);
 				}
 			}
+			else if (target == BuildTarget.Android)
+			{
+				int indexVulkan = GetGraphicsApiIndex(target, GraphicsDeviceType.Vulkan);
+				if (indexVulkan > 0)
+				{
+					string message = "Vulkan graphics API is not supported by AVPro Movie Capture.";
+					message += "\n\nPlease go to Player Settings > Auto Graphics API and add OpenGLES to the top of the list.";
+					ShowAbortDialog(message);
+				}
+			}
 		}
 
 		static void ShowAbortDialog(string message)

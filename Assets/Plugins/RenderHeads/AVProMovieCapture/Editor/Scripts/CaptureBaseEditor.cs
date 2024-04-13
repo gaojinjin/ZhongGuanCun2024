@@ -51,6 +51,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 		private readonly static GUIContent _guiStreamableMP4 = new GUIContent("Streamable MP4");
 		private readonly static GUIContent _guiStereoPacking = new GUIContent("Stereo Packing");
 		private readonly static GUIContent _guiSphericalLayout = new GUIContent("Spherical Layout");
+		private readonly static GUIContent _guiAndroidNoCaptureRotation = new GUIContent("No Capture Rotation");
 
 		private static bool _isTrialVersion = false;
 		private SerializedProperty _propCaptureKey;
@@ -63,6 +64,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 		private SerializedProperty _propImageSequenceFormatWindows;
 		private SerializedProperty _propImageSequenceFormatMacOS;
 		private SerializedProperty _propImageSequenceFormatIOS;
+		private SerializedProperty _propImageSequenceFormatAndroid;
 		private SerializedProperty _propImageSequenceStartFrame;
 		private SerializedProperty _propImageSequenceZeroDigits;
 		private SerializedProperty _propOutputFolderType;
@@ -76,16 +78,20 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 
 		private SerializedProperty _propVideoCodecPriorityWindows;
 		private SerializedProperty _propVideoCodecPriorityMacOS;
+		//private SerializedProperty _propVideoCodecPriorityAndroid;
 		private SerializedProperty _propForceVideoCodecIndexWindows;
 		private SerializedProperty _propForceVideoCodecIndexMacOS;
 		private SerializedProperty _propForceVideoCodecIndexIOS;
+		private SerializedProperty _propForceVideoCodecIndexAndroid;
 
 		private SerializedProperty _propAudioCaptureSource;
 		private SerializedProperty _propAudioCodecPriorityWindows;
 		private SerializedProperty _propAudioCodecPriorityMacOS;
+		//private SerializedProperty _propAudioCodecPriorityAndroid;
 		private SerializedProperty _propForceAudioCodecIndexWindows;
 		private SerializedProperty _propForceAudioCodecIndexMacOS;
 		private SerializedProperty _propForceAudioCodecIndexIOS;
+		private SerializedProperty _propForceAudioCodecIndexAndroid;
 		private SerializedProperty _propForceAudioDeviceIndex;
 		private SerializedProperty _propUnityAudioCapture;
 		private SerializedProperty _propManualAudioSampleRate;
@@ -133,6 +139,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 		private SerializedProperty _propFlipVertically;
 		private SerializedProperty _propForceGpuFlush;
 		private SerializedProperty _propWaitForEndOfFrame;
+		private SerializedProperty _propAndroidNoCaptureRotation;
 
 		private SerializedProperty _propUseMotionBlur;
 		private SerializedProperty _propMotionBlurSamples;
@@ -449,6 +456,10 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 					{
 						EditorUtils.EnumAsDropdown("Format", _propImageSequenceFormatIOS, Utils.IOSImageSequenceFormatNames);
 					}
+					else if (_selectedPlatform == NativePlugin.Platform.Android)
+					{
+						EditorUtils.EnumAsDropdown("Format", _propImageSequenceFormatAndroid, Utils.AndroidImageSequenceFormatNames);
+					}
 					EndPlatformSelection();
 					GUILayout.Space(8f);
 				}
@@ -659,6 +670,10 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 				EditorGUILayout.PropertyField(_propForceGpuFlush);
 				EditorGUILayout.PropertyField(_propMinimumDiskSpaceMB);
 			}
+			else if (_selectedPlatform == NativePlugin.Platform.Android)
+			{
+				EditorGUILayout.PropertyField(_propAndroidNoCaptureRotation, _guiAndroidNoCaptureRotation);
+			}
 			EndPlatformSelection();
 		}
 
@@ -744,6 +759,14 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 			}
 		}
 
+		protected void GUI_VisualCodecs_Android()
+		{
+			EditorGUI.BeginDisabledGroup(true);
+			EditorGUILayout.Toggle("Search by name", false);
+			EditorGUI.EndDisabledGroup();
+			_propForceVideoCodecIndexAndroid.intValue = EditorGUILayout.Popup(_propForceVideoCodecIndexAndroid.intValue, NativePlugin.VideoCodecNamesAndroid);
+		}
+
 		protected void GUI_VisualCodecs_MacOS()
 		{
 			bool searchByName = (_propForceVideoCodecIndexMacOS.intValue < 0);
@@ -793,6 +816,10 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 			{
 				GUI_VisualCodecs_IOS();
 			}
+			else if (_selectedPlatform == NativePlugin.Platform.Android)
+			{
+				GUI_VisualCodecs_Android();
+			}
 			EndPlatformSelection();
 		}
 
@@ -823,6 +850,13 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 				{
 					EditorGUILayout.PropertyField(_propForceAudioCodecIndexWindows);
 				}
+			}
+			else if (_selectedPlatform == NativePlugin.Platform.Android)
+			{
+				EditorGUI.BeginDisabledGroup(true);
+				EditorGUILayout.Toggle("Search by name", false);
+				EditorGUI.EndDisabledGroup();
+				_propForceAudioCodecIndexAndroid.intValue = EditorGUILayout.Popup(_propForceAudioCodecIndexAndroid.intValue, NativePlugin.AudioCodecNamesAndroid);
 			}
 			else if (_selectedPlatform == NativePlugin.Platform.macOS)
 			{
@@ -1008,6 +1042,10 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 				{
 					GUI_VisualCodecs_IOS();
 				}
+				else if (_selectedPlatform == NativePlugin.Platform.Android)
+				{
+					GUI_VisualCodecs_Android();
+				}
 
 				GUILayout.Label("Encoder Hints", EditorStyles.boldLabel);
 				EditorGUILayout.PropertyField(_propVideoHints[(int)_selectedPlatform].propAverageBitrate);
@@ -1106,6 +1144,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 			_propImageSequenceFormatWindows = serializedObject.AssertFindProperty("_imageSequenceFormatWindows");
 			_propImageSequenceFormatMacOS = serializedObject.AssertFindProperty("_imageSequenceFormatMacOS");
 			_propImageSequenceFormatIOS = serializedObject.AssertFindProperty("_imageSequenceFormatIOS");
+			_propImageSequenceFormatAndroid = serializedObject.AssertFindProperty("_imageSequenceFormatAndroid");
 			_propImageSequenceStartFrame = serializedObject.AssertFindProperty("_imageSequenceStartFrame");
 			_propImageSequenceZeroDigits = serializedObject.AssertFindProperty("_imageSequenceZeroDigits");
 			_propOutputFolderType = serializedObject.AssertFindProperty("_outputFolderType");
@@ -1118,16 +1157,20 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 
 			_propVideoCodecPriorityWindows = serializedObject.AssertFindProperty("_videoCodecPriorityWindows");
 			_propVideoCodecPriorityMacOS = serializedObject.AssertFindProperty("_videoCodecPriorityMacOS");
+			//_propVideoCodecPriorityAndroid = serializedObject.AssertFindProperty("_videoCodecPriorityAndroid");
 			_propForceVideoCodecIndexWindows = serializedObject.AssertFindProperty("_forceVideoCodecIndexWindows");
 			_propForceVideoCodecIndexMacOS = serializedObject.AssertFindProperty("_forceVideoCodecIndexMacOS");
 			_propForceVideoCodecIndexIOS = serializedObject.AssertFindProperty("_forceVideoCodecIndexIOS");
+			_propForceVideoCodecIndexAndroid = serializedObject.AssertFindProperty("_forceVideoCodecIndexAndroid");
 
 			_propAudioCodecPriorityWindows = serializedObject.AssertFindProperty("_audioCodecPriorityWindows");
 			_propAudioCodecPriorityMacOS = serializedObject.AssertFindProperty("_audioCodecPriorityMacOS");
 			//_propAudioCodecPriorityIOS = serializedObject.AssertFindProperty("_audioCodecPriorityIOS");
+			//_propAudioCodecPriorityAndroid = serializedObject.AssertFindProperty("_audioCodecPriorityAndroid");
 			_propForceAudioCodecIndexWindows = serializedObject.AssertFindProperty("_forceAudioCodecIndexWindows");
 			_propForceAudioCodecIndexMacOS = serializedObject.AssertFindProperty("_forceAudioCodecIndexMacOS");
 			_propForceAudioCodecIndexIOS = serializedObject.AssertFindProperty("_forceAudioCodecIndexIOS");
+			_propForceAudioCodecIndexAndroid = serializedObject.AssertFindProperty("_forceAudioCodecIndexAndroid");
 
 			_propAudioCaptureSource = serializedObject.AssertFindProperty("_audioCaptureSource");
 			_propUnityAudioCapture = serializedObject.AssertFindProperty("_unityAudioCapture");
@@ -1143,6 +1186,7 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 			_propFlipVertically = serializedObject.AssertFindProperty("_flipVertically");
 			_propForceGpuFlush = serializedObject.AssertFindProperty("_forceGpuFlush");
 			_propWaitForEndOfFrame = serializedObject.AssertFindProperty("_useWaitForEndOfFrame");
+			_propAndroidNoCaptureRotation = serializedObject.AssertFindProperty("_androidNoCaptureRotation");
 
 			_propUseMotionBlur = serializedObject.AssertFindProperty("_useMotionBlur");
 			_propMotionBlurSamples = serializedObject.AssertFindProperty("_motionBlurSamples");
@@ -1160,11 +1204,13 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 			_propVideoHints[(int)NativePlugin.Platform.Windows] = GetProperties_VideoHints(serializedObject, "_encoderHintsWindows.videoHints");
 			_propVideoHints[(int)NativePlugin.Platform.macOS] = GetProperties_VideoHints(serializedObject, "_encoderHintsMacOS.videoHints");
 			_propVideoHints[(int)NativePlugin.Platform.iOS] = GetProperties_VideoHints(serializedObject, "_encoderHintsIOS.videoHints");
+			_propVideoHints[(int)NativePlugin.Platform.Android] = GetProperties_VideoHints(serializedObject, "_encoderHintsAndroid.videoHints");
 
 			_propImageHints = new PropImageHints[(int)NativePlugin.Platform.Count];
 			_propImageHints[(int)NativePlugin.Platform.Windows] = GetProperties_ImageHints(serializedObject, "_encoderHintsWindows.imageHints");
 			_propImageHints[(int)NativePlugin.Platform.macOS] = GetProperties_ImageHints(serializedObject, "_encoderHintsMacOS.imageHints");
 			_propImageHints[(int)NativePlugin.Platform.iOS] = GetProperties_ImageHints(serializedObject, "_encoderHintsIOS.imageHints");
+			_propImageHints[(int)NativePlugin.Platform.Android] = GetProperties_ImageHints(serializedObject, "_encoderHintsAndroid.imageHints");
 
 			_propLogCaptureStartStop = serializedObject.AssertFindProperty("_logCaptureStartStop");
 			_propAllowVsyncDisable = serializedObject.AssertFindProperty("_allowVSyncDisable");

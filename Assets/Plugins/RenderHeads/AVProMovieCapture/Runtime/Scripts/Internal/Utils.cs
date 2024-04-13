@@ -14,23 +14,26 @@ namespace RenderHeads.Media.AVProMovieCapture
 		public static string[] WindowsImageSequenceFormatNames = new string[] { "PNG (uncompressed)" };
 		public static string[] MacOSImageSequenceFormatNames = new string[] { "PNG", "JPEG", "TIFF", "HEIF" };
 		public static string[] IOSImageSequenceFormatNames = new string[] { "PNG", "JPEG", "TIFF", "HEIF" };
+		public static string[] AndroidImageSequenceFormatNames = new string[] { "PNG", "JPEG" };
 
 		public static string[] GetNativeImageSequenceFormatNames()
 		{
 			string[] result = null;
 			#if UNITY_EDITOR
 				#if UNITY_EDITOR_WIN
-				result = WindowsImageSequenceFormatNames;
+					result = WindowsImageSequenceFormatNames;
 				#elif UNITY_EDITOR_OSX
-				result = MacOSImageSequenceFormatNames;
+					result = MacOSImageSequenceFormatNames;
 				#endif
 			#else
 				#if UNITY_STANDALONE_WIN
-				result = WindowsImageSequenceFormatNames;
+					result = WindowsImageSequenceFormatNames;
 				#elif UNITY_STANDALONE_OSX
-				result = MacOSImageSequenceFormatNames;
+					result = MacOSImageSequenceFormatNames;
 				#elif UNITY_IOS
-				result = IOSImageSequenceFormatNames;
+					result = IOSImageSequenceFormatNames;
+				#elif UNITY_ANDROID
+					result = AndroidImageSequenceFormatNames;
 				#endif
 			#endif
 			if (result == null)

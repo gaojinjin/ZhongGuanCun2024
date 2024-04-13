@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using UnityEngine;
 
 //-----------------------------------------------------------------------------
 // Copyright 2012-2022 RenderHeads Ltd.  All rights reserved.
@@ -17,6 +18,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 		private MP4FileProcessing.Options _postOptions;
 		private ManualResetEvent _postProcessEvent;
 		private CompletionStatus _completionStatus;
+		private string _finalFilePath;
+		private bool _updateMediaGallery;
 
 		public enum CompletionStatus
 		{
@@ -30,7 +33,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 		{
 			get { return _completionStatus; }
 		}
-
+		
 		public string Path
 		{
 			get { return _path; }
@@ -39,13 +42,15 @@ namespace RenderHeads.Media.AVProMovieCapture
 		// Register for notification of when the final file writing completes
 		internal System.Action<FileWritingHandler> CompletedFileWritingAction { get; set; }
 
-		internal FileWritingHandler(OutputTarget outputTarget, string path, int handle, bool deleteFile)
+		internal FileWritingHandler(OutputTarget outputTarget, string path, int handle, bool deleteFile, string finalFilePath, bool updateMediaGallery)
 		{
 			_outputTarget = outputTarget;
 			_path = path;
 			_handle = handle;
 			_deleteFile = deleteFile;
 			_completionStatus = CompletionStatus.BusyFileWriting;
+			_finalFilePath = finalFilePath;
+			_updateMediaGallery = updateMediaGallery;
 		}
 
 		internal void SetFilePostProcess(MP4FileProcessing.Options postOptions)
@@ -119,6 +124,14 @@ namespace RenderHeads.Media.AVProMovieCapture
 				CompletedFileWritingAction.Invoke(this);
 				CompletedFileWritingAction = null;
 			}
+
+			if( _updateMediaGallery )
+			{
+				// Update video gallery on Android
+				CaptureBase.UpdateMediaGallery( _finalFilePath );
+			}
+
+			CaptureBase.ActiveFilePaths.Remove(_path);
 		}
 
 		// Helper method for cleaning up a list

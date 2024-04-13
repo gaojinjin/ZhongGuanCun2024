@@ -4,6 +4,7 @@
 #endif
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Rendering;
@@ -39,19 +40,38 @@ namespace RenderHeads.Media.AVProMovieCapture.Editor
 			if (target != BuildTarget.iOS)
 				return;
 
-			string[] guids = AssetDatabase.FindAssets("libAVProMovieCapture");
+			FindAndRemoveStaticLib();
+		}
+
+		private void FindAndRemoveStaticLib()
+		{
+			// Find all assets whose name begins "libAVProMovieCapture"
+			string libAVProMovieCapture = "libAVProMovieCapture";
+			string[] guids = AssetDatabase.FindAssets(libAVProMovieCapture);
 			if (guids.Length == 0)
 				return;
 
+			// Get the paths to those assets, discarding those who aren't a complete match
+			List<string> paths = new List<string>();
+			foreach (string guid in guids)
+			{
+				string path = AssetDatabase.GUIDToAssetPath(guid);
+				string filename = Path.GetFileNameWithoutExtension(path);
+				if (filename == libAVProMovieCapture)
+					paths.Add(path);
+			}
+			if (paths.Count == 0)
+				return;
+
+			// We need to delete some files
 			Debug.LogWarning("libAVProMovieCapture.a is no longer required and will be removed from your project.");
 			Debug.Log("If you selected 'Append' your project will not build in Xcode this time. Please select 'Replace' to refresh the project files.");
 
-			foreach (string guid in guids)
+			foreach (string path in paths)
 			{
-				string libAVProMovieCapturePath = AssetDatabase.GUIDToAssetPath(guid);
-				Debug.Log("Deleting " + libAVProMovieCapturePath);
-				System.IO.File.Delete(libAVProMovieCapturePath);
-				System.IO.File.Delete(libAVProMovieCapturePath + ".meta");
+				Debug.Log("Deleting: " + path);
+				System.IO.File.Delete(path);
+				System.IO.File.Delete(path + ".meta");
 			}
 		}
 	}

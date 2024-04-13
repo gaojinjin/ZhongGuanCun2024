@@ -26,6 +26,9 @@ using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+#if UNITY_ANDROID && !UNITY_EDITOR
+using UnityEngine.Android;
+#endif
 
 //-----------------------------------------------------------------------------
 // Copyright 2012-2022 RenderHeads Ltd.  All rights reserved.
@@ -118,6 +121,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 			colourSpace = ColourSpace.Unknown;
 			sourceWidth = 0;
 			sourceHeight = 0;
+			androidNoCaptureRotation = false;
 		}
 
 		internal void Validate()
@@ -177,6 +181,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 		// The width and height of the source
 		public int sourceWidth;
 		public int sourceHeight;
+
+		public bool androidNoCaptureRotation;
 	}
 
 	[System.Serializable]
@@ -241,6 +247,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 	/// </summary>
 	public partial class CaptureBase : MonoBehaviour
 	{
+		private const string DocEditionsURL = "https://www.renderheads.com/content/docs/AVProMovieCapture/articles/download.html#editions";
+
 		public enum Resolution
 		{
 			POW2_8192x8192,
@@ -310,7 +318,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 			RelativeToDesktop,
 			RelativeToPictures,
 			RelativeToVideos,
-			PhotoLibrary
+			PhotoLibrary,
+			RelativeToTemporaryCachePath
 		}
 
 		public enum FrameUpdateMode
@@ -350,6 +359,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 		[SerializeField] EncoderHints _encoderHintsWindows = new EncoderHints();
 		[SerializeField] EncoderHints _encoderHintsMacOS = new EncoderHints();
 		[SerializeField] EncoderHints _encoderHintsIOS = new EncoderHints();
+		[SerializeField] EncoderHints _encoderHintsAndroid = new EncoderHints();
 
 		// General options
 
@@ -384,6 +394,10 @@ namespace RenderHeads.Media.AVProMovieCapture
 																				"Apple ProRes 422",
 																				"Apple ProRes 4444" };
 
+		public static readonly string[] DefaultVideoCodecPriorityAndroid =  {	"H264",
+																				"HEVC"/*,
+																				"VP8",
+																				"VP9"*/ };
 
 		public static readonly string[] DefaultAudioCodecPriorityWindows = {	"AAC",
 																				"FLAC",
@@ -401,15 +415,26 @@ namespace RenderHeads.Media.AVProMovieCapture
 																			"Linear PCM",
 																			"Uncompresssed" };
 
+		public static readonly string[] DefaultAudioCodecPriorityAndroid =  {"AAC"/*,
+																			"FLAC",
+																			"OPUS"*/};
+
 		public static readonly string[] DefaultAudioCaptureDevicePriorityWindow = { "Microphone (Realtek Audio)", "Stereo Mix", "What U Hear", "What You Hear", "Waveout Mix", "Mixed Output" };
 		public static readonly string[] DefaultAudioCaptureDevicePriorityMacOS = { };
 		public static readonly string[] DefaultAudioCaptureDevicePriorityIOS = { };
+		public static readonly string[] DefaultAudioCaptureDevicePriorityAndroid = { };
 
 		[SerializeField] string[] _videoCodecPriorityWindows = DefaultVideoCodecPriorityWindows;
 		[SerializeField] string[] _videoCodecPriorityMacOS = DefaultVideoCodecPriorityMacOS;
+		#pragma warning disable 0414		// "is assigned but its value is never used"
+		[SerializeField] string[] _videoCodecPriorityAndroid = DefaultVideoCodecPriorityAndroid;
+		#pragma warning restore 0414
 
 		[SerializeField] string[] _audioCodecPriorityWindows = DefaultAudioCodecPriorityWindows;
 		[SerializeField] string[] _audioCodecPriorityMacOS = DefaultAudioCodecPriorityMacOS;
+		#pragma warning disable 0414		// "is assigned but its value is never used"
+		[SerializeField] string[] _audioCodecPriorityAndroid = DefaultAudioCodecPriorityAndroid;
+		#pragma warning restore 0414
 
 		[SerializeField] float _frameRate = 30f;
 
@@ -425,9 +450,11 @@ namespace RenderHeads.Media.AVProMovieCapture
 		[SerializeField, Range(-1, 128)] int _forceVideoCodecIndexWindows = -1;
 		[SerializeField, Range(-1, 128)] int _forceVideoCodecIndexMacOS = 0;
 		[SerializeField, Range(0, 128)] int _forceVideoCodecIndexIOS = 0;
+		[SerializeField, Range(0, 128)] int _forceVideoCodecIndexAndroid = 0;
 		[SerializeField, Range(-1, 128)] int _forceAudioCodecIndexWindows = -1;
 		[SerializeField, Range(-1, 128)] int _forceAudioCodecIndexMacOS = 0;
 		[SerializeField, Range(0, 128)] int _forceAudioCodecIndexIOS = 0;
+		[SerializeField, Range(0, 128)] int _forceAudioCodecIndexAndroid = -1;
 		#pragma warning restore 414
 		[SerializeField] bool _flipVertically = false;
 
@@ -436,6 +463,9 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		[Tooltip("This option can help issues where skinning is used, or other animation/rendering effects that only complete later in the frame.")]
 		[SerializeField] protected bool _useWaitForEndOfFrame = true;
+
+		[Tooltip("Portrait captures may be rotated 90° to better utilise the encoder, check this to disable the rotation at the risk of not being able to capture the full vertical resolution.")]
+		[SerializeField] bool _androidNoCaptureRotation = false;
 
 		[Tooltip("Log the start and stop of the capture.  Disable this for less garbage generation.")]
 		[SerializeField] bool _logCaptureStartStop = true;
@@ -511,6 +541,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 		[SerializeField] ImageSequenceFormat _imageSequenceFormatWindows = ImageSequenceFormat.PNG;
 		[SerializeField] ImageSequenceFormat _imageSequenceFormatMacOS = ImageSequenceFormat.PNG;
 		[SerializeField] ImageSequenceFormat _imageSequenceFormatIOS = ImageSequenceFormat.PNG;
+		[SerializeField] ImageSequenceFormat _imageSequenceFormatAndroid = ImageSequenceFormat.PNG;
 		#pragma warning restore 414
 
 		public int ImageSequenceStartFrame
@@ -583,6 +614,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 		protected bool _capturing = false;
 		protected bool _paused = false;
 		protected string _filePath;
+		protected string _finalFilePath;
 		protected FileInfo _fileInfo;
 		protected NativePlugin.PixelFormat _pixelFormat = NativePlugin.PixelFormat.YCbCr422_YUY2;
 		private Codec _selectedVideoCodec = null;
@@ -607,6 +639,12 @@ namespace RenderHeads.Media.AVProMovieCapture
 		private System.Action<FileWritingHandler> _completedFileWritingAction;
 		private List<FileWritingHandler> _pendingFileWrites = new List<FileWritingHandler>(4);
 
+		private static HashSet<string> _activeFilePaths = new HashSet<string>();
+		public static HashSet<string> ActiveFilePaths
+		{
+			get { return _activeFilePaths; }
+		}
+
 		public string LastFilePath
 		{
 			get { return _filePath; }
@@ -618,7 +656,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 			get { return _beginFinalFileWritingAction; }
 			set { _beginFinalFileWritingAction = value; }
 		}
-
+		
 		// Register for notification of when the final file writing completes
 		public System.Action<FileWritingHandler> CompletedFileWritingAction
 		{ 
@@ -877,6 +915,9 @@ namespace RenderHeads.Media.AVProMovieCapture
 				#elif UNITY_IOS
 					get { return _forceVideoCodecIndexIOS; }
 					set { _forceVideoCodecIndexIOS = value; }
+				#elif UNITY_ANDROID
+					get { return _forceVideoCodecIndexAndroid; }
+					set { _forceVideoCodecIndexAndroid = value; }
 				#else
 					get { return -1; }
 					set { }
@@ -907,6 +948,9 @@ namespace RenderHeads.Media.AVProMovieCapture
 				#elif UNITY_IOS
 					get { return _forceAudioCodecIndexIOS; }
 					set { _forceAudioCodecIndexIOS = value; }
+				#elif UNITY_ANDROID
+					get { return _forceAudioCodecIndexAndroid; }
+					set { _forceAudioCodecIndexAndroid = value; }
 				#else
 					get { return -1; }
 					set { }
@@ -937,6 +981,9 @@ namespace RenderHeads.Media.AVProMovieCapture
 				#elif UNITY_IOS
 					get { return _imageSequenceFormatIOS; }
 					set { _imageSequenceFormatIOS = value; }
+				#elif UNITY_ANDROID
+					get { return _imageSequenceFormatAndroid; }
+					set { _imageSequenceFormatAndroid = value; }
 				#else
 					get { return ImageSequenceFormat.PNG; }
 					set { }
@@ -960,6 +1007,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 					result = NativePlugin.Platform.macOS;
 				#elif UNITY_IOS
 					result = NativePlugin.Platform.iOS;
+				#elif UNITY_ANDROID
+					result = NativePlugin.Platform.Android;
 				#endif
 			#endif
 			return result;
@@ -984,6 +1033,9 @@ namespace RenderHeads.Media.AVProMovieCapture
 				case NativePlugin.Platform.iOS:
 					result = _encoderHintsIOS;
 					break;
+				case NativePlugin.Platform.Android:
+					result = _encoderHintsAndroid;
+					break;
 			}
 			return result;
 		}
@@ -1005,6 +1057,29 @@ namespace RenderHeads.Media.AVProMovieCapture
 				case NativePlugin.Platform.iOS:
 					_encoderHintsIOS = hints;
 					break;
+				case NativePlugin.Platform.Android:
+					_encoderHintsAndroid = hints;
+					break;
+			}
+		}
+
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+		protected static AndroidJavaObject s_ActivityContext = null;
+		protected static AndroidJavaClass s_Interface = null;
+#endif
+
+		public static void UpdateMediaGallery( string videoFilePath )
+		{
+			if( videoFilePath != null )
+			{
+#if UNITY_ANDROID && !UNITY_EDITOR
+				// Update video gallery on Android
+				if( s_Interface != null )
+				{
+					s_Interface.CallStatic("UpdateMediaGallery", videoFilePath);
+				}
+#endif
 			}
 		}
 
@@ -1012,6 +1087,21 @@ namespace RenderHeads.Media.AVProMovieCapture
 		{
 			if (!_isInitialised)
 			{
+#if UNITY_ANDROID && !UNITY_EDITOR
+				// Get the activity context
+				if (s_ActivityContext == null)
+				{
+					AndroidJavaClass activityClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+					if (activityClass != null)
+					{
+						s_ActivityContext = activityClass.GetStatic<AndroidJavaObject>("currentActivity");
+					}
+				}
+
+				s_Interface = new AndroidJavaClass("com.renderheads.AVPro.MovieCapture.Manager");
+				s_Interface.CallStatic("setContext", s_ActivityContext);
+#endif
+
 				try
 				{
 					string pluginVersionString = NativePlugin.GetPluginVersionString();
@@ -1159,6 +1249,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 			SelectCodec(ref _selectedVideoCodec, CodecManager.VideoCodecs, NativeForceVideoCodecIndex, _videoCodecPriorityMacOS, MediaApi.Unknown, true, isStartingCapture);
 #elif !UNITY_EDITOR && UNITY_IOS
 			SelectCodec(ref _selectedVideoCodec, CodecManager.VideoCodecs, NativeForceVideoCodecIndex, null, MediaApi.Unknown, true, isStartingCapture);
+#elif !UNITY_EDITOR && UNITY_ANDROID
+			SelectCodec(ref _selectedVideoCodec, CodecManager.VideoCodecs, NativeForceVideoCodecIndex, _videoCodecPriorityAndroid, MediaApi.Unknown, true, isStartingCapture);
 #endif
 
 			if (isStartingCapture && _selectedVideoCodec == null)
@@ -1171,21 +1263,26 @@ namespace RenderHeads.Media.AVProMovieCapture
 		public Codec SelectAudioCodec()
 		{
 			_selectedAudioCodec = null;
-#if UNITY_EDITOR_WIN || (!UNITY_EDITOR && UNITY_STANDALONE_WIN)
-			// Audio codec selection requires a video codec to be selected first on Windows
-			if (_selectedVideoCodec != null)
+			if (_audioCaptureSource != AudioCaptureSource.None)
 			{
-				SelectCodec(ref _selectedAudioCodec, CodecManager.AudioCodecs, NativeForceAudioCodecIndex, _audioCodecPriorityWindows, _selectedVideoCodec.MediaApi, true, false);
-			}
+#if UNITY_EDITOR_WIN || (!UNITY_EDITOR && UNITY_STANDALONE_WIN)
+				// Audio codec selection requires a video codec to be selected first on Windows
+				if (_selectedVideoCodec != null)
+				{
+					SelectCodec(ref _selectedAudioCodec, CodecManager.AudioCodecs, NativeForceAudioCodecIndex, _audioCodecPriorityWindows, _selectedVideoCodec.MediaApi, true, false);
+				}
 #elif UNITY_EDITOR_OSX || (!UNITY_EDITOR && UNITY_STANDALONE_OSX)
-			SelectCodec(ref _selectedAudioCodec, CodecManager.AudioCodecs, NativeForceAudioCodecIndex, _audioCodecPriorityMacOS, MediaApi.Unknown, true, false);
+				SelectCodec(ref _selectedAudioCodec, CodecManager.AudioCodecs, NativeForceAudioCodecIndex, _audioCodecPriorityMacOS, MediaApi.Unknown, true, false);
 #elif !UNITY_EDITOR && UNITY_IOS
-			SelectCodec(ref _selectedAudioCodec, CodecManager.AudioCodecs, NativeForceAudioCodecIndex, null, MediaApi.Unknown, true, false);
+				SelectCodec(ref _selectedAudioCodec, CodecManager.AudioCodecs, NativeForceAudioCodecIndex, null, MediaApi.Unknown, true, false);
+#elif !UNITY_EDITOR && UNITY_ANDROID
+				SelectCodec(ref _selectedAudioCodec, CodecManager.AudioCodecs, NativeForceAudioCodecIndex, _audioCodecPriorityAndroid, MediaApi.Unknown, true, false);
 #endif
 
-			if (_selectedAudioCodec == null)
-			{
-				//Debug.LogError("[AVProMovieCapture] Failed to select a suitable audio codec");
+				if (_selectedAudioCodec == null)
+				{
+					//Debug.LogError("[AVProMovieCapture] Failed to select a suitable audio codec");
+				}
 			}
 			return _selectedAudioCodec;
 		}
@@ -1193,27 +1290,29 @@ namespace RenderHeads.Media.AVProMovieCapture
 		public Device SelectAudioInputDevice()
 		{
 			_selectedAudioInputDevice = null;
-
-			// Audio input device selection requires a video codec to be selected first
-			if (_selectedVideoCodec != null)
+			if (_audioCaptureSource == AudioCaptureSource.Microphone)
 			{
-				if (_forceAudioInputDeviceIndex >= 0 && _forceAudioInputDeviceIndex < DeviceManager.AudioInputDevices.Count)
+				// Audio input device selection requires a video codec to be selected first
+				if (_selectedVideoCodec != null)
 				{
-					_selectedAudioInputDevice = DeviceManager.AudioInputDevices.Devices[_forceAudioInputDeviceIndex];
-				}
-
-				// If the found codec doesn't match the required MediaApi, set it to null
-				if (_selectedAudioInputDevice != null && _selectedAudioInputDevice.MediaApi != _selectedVideoCodec.MediaApi)
-				{
-					_selectedAudioInputDevice = null;
-				}
-
-				// Fallback to the first device
-				if (_selectedAudioInputDevice == null)
-				{
-					if (DeviceManager.AudioInputDevices.Count > 0)
+					if (_forceAudioInputDeviceIndex >= 0 && _forceAudioInputDeviceIndex < DeviceManager.AudioInputDevices.Count)
 					{
-						_selectedAudioInputDevice = DeviceManager.AudioInputDevices.GetFirstWithMediaApi(_selectedVideoCodec.MediaApi);
+						_selectedAudioInputDevice = DeviceManager.AudioInputDevices.Devices[_forceAudioInputDeviceIndex];
+					}
+
+					// If the found codec doesn't match the required MediaApi, set it to null
+					if (_selectedAudioInputDevice != null && _selectedAudioInputDevice.MediaApi != _selectedVideoCodec.MediaApi)
+					{
+						_selectedAudioInputDevice = null;
+					}
+
+					// Fallback to the first device
+					if (_selectedAudioInputDevice == null)
+					{
+						if (DeviceManager.AudioInputDevices.Count > 0)
+						{
+							_selectedAudioInputDevice = DeviceManager.AudioInputDevices.GetFirstWithMediaApi(_selectedVideoCodec.MediaApi);
+						}
 					}
 				}
 			}
@@ -1430,6 +1529,20 @@ namespace RenderHeads.Media.AVProMovieCapture
 			return filename;
 		}
 
+#if UNITY_ANDROID && !UNITY_EDITOR
+		private static string GetAndroidExternalDCIMStoragePath()
+		{
+			if( Application.platform != RuntimePlatform.Android )
+			{
+				return Application.persistentDataPath;
+			}
+
+			var jClass = new AndroidJavaClass("android.os.Environment");
+			var dcimPath = jClass.CallStatic<AndroidJavaObject>("getExternalStoragePublicDirectory", jClass.GetStatic<string>("DIRECTORY_DCIM")).Call<string>("getAbsolutePath");
+			return dcimPath;
+		}
+#endif
+
 		private static string GetFolder(OutputPath outputPathType, string path)
 		{
 			string folder = string.Empty;
@@ -1447,6 +1560,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 				case OutputPath.RelativeToDesktop:
 				case OutputPath.RelativeToVideos:
 				case OutputPath.RelativeToPictures:
+				case OutputPath.RelativeToTemporaryCachePath:
 					// These are unsupported
 				default:
 					Debug.LogWarning(string.Format("[AVProMovieCapture] 'OutputPath.{0}' is not supported on iOS, defaulting to 'OutputPath.RelativeToPeristentData'", outputPathType));
@@ -1455,6 +1569,27 @@ namespace RenderHeads.Media.AVProMovieCapture
 			}
 #endif
 
+#if UNITY_ANDROID && !UNITY_EDITOR
+			// Android only supports a very limited subset of OutputPath so fix up and warn the user
+			switch (outputPathType)
+			{
+				case OutputPath.RelativeToPeristentData:
+				case OutputPath.RelativeToVideos:
+				case OutputPath.Absolute:
+				case OutputPath.RelativeToTemporaryCachePath:
+					// These are fine
+					break;
+				case OutputPath.RelativeToProject:
+				case OutputPath.RelativeToDesktop:
+				case OutputPath.RelativeToPictures:
+				case OutputPath.PhotoLibrary:
+					// These are unsupported
+				default:
+					Debug.LogWarning(string.Format("[AVProMovieCapture] 'OutputPath.{0}' is not supported on Android, defaulting to 'OutputPath.RelativeToPeristentData'", outputPathType));
+					outputPathType = OutputPath.RelativeToPeristentData;
+					break;
+			}
+#endif
 #if UNITY_EDITOR
 			// Photo Library is unavailable in the editor
 			if (outputPathType == OutputPath.PhotoLibrary)
@@ -1486,15 +1621,22 @@ namespace RenderHeads.Media.AVProMovieCapture
 					folder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyPictures);
 					break;
 				case OutputPath.RelativeToVideos:
-					#if NET_4_6
-					folder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyVideos);
+					#if UNITY_ANDROID && !UNITY_EDITOR
+						folder = GetAndroidExternalDCIMStoragePath();
 					#else
-					folder = System.Environment.GetFolderPath((System.Environment.SpecialFolder)14);	// Older Mono doesn't have MyVideos defined - but still works!
+						#if NET_4_6
+							folder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyVideos);
+						#else
+							folder = System.Environment.GetFolderPath((System.Environment.SpecialFolder)14);    // Older Mono doesn't have MyVideos defined - but still works!
+						#endif
 					#endif
 					break;
 				case OutputPath.PhotoLibrary:
 					// use avpmc-photolibrary as the scheme
 					folder = "avpmc-photolibrary:///";	// Three slashes are good as we don't need the host component
+					break;
+				case OutputPath.RelativeToTemporaryCachePath:
+					folder = System.IO.Path.GetFullPath(Application.temporaryCachePath);
 					break;
 			}
 
@@ -1535,17 +1677,20 @@ namespace RenderHeads.Media.AVProMovieCapture
 						_filenameExtension = extensions[0];
 					}
 				}
-				filename = _filenamePrefix + "." + _filenameExtension;
 				if (_appendFilenameTimestamp)
 				{
 					filename = GenerateTimestampedFilename(_filenamePrefix, _filenameExtension);
+				}
+				else
+				{
+					filename = _filenamePrefix + "." + _filenameExtension;
 				}
 			}
 			else if (_outputTarget == OutputTarget.ImageSequence)
 			{
 				// [MOZ] Made the enclosing folder uniquely named, easier for extraction on iOS and simplifies scripts for processing the frames
 				string fileExtension = Utils.GetImageFileExtension(NativeImageSequenceFormat);
-				filename = GenerateTimestampedFilename(_filenamePrefix, null) + @"/frame" + string.Format("{0}.{1}", Time.frameCount, fileExtension);
+				filename = GenerateTimestampedFilename(_filenamePrefix, null) + "/frame" + string.Format("-%0{0}d.{1}", _imageSequenceZeroDigits, fileExtension);
 			}
 			else if (_outputTarget == OutputTarget.NamedPipe)
 			{
@@ -1555,11 +1700,56 @@ namespace RenderHeads.Media.AVProMovieCapture
 			if (_outputTarget == OutputTarget.VideoFile ||
 				_outputTarget == OutputTarget.ImageSequence)
 			{
-				_filePath = GenerateFilePath(_outputFolderType, _outputFolderPath, filename);
+				OutputPath outputFolderType = _outputFolderType;
+				string outputFolderPath = _outputFolderPath;
+				_finalFilePath = null;
 
-				#if !UNITY_EDITOR && (UNITY_STANDALONE_OSX || UNITY_IOS)
+#if UNITY_ANDROID && !UNITY_EDITOR
+				if( _outputFolderType != OutputPath.RelativeToPeristentData )
+				{
+					// Where do we want to write the final file to?
+					_finalFilePath = GenerateFilePath(_outputFolderType, _outputFolderPath, filename);
+
+					// Capture to path relative to the project
+					outputFolderType = OutputPath.RelativeToPeristentData;
+					outputFolderPath = "Captures";
+
+					// Create target final directory if it doesn't exist
+					String finalDirectory = Path.GetDirectoryName(_finalFilePath);
+					Debug.Log("[AVProMovieCapture]: finalDirectory = " + finalDirectory);
+					if (!string.IsNullOrEmpty(finalDirectory) && !Directory.Exists(finalDirectory))
+					{
+						Directory.CreateDirectory(finalDirectory);
+					}
+				}
+#endif
+				_filePath = GenerateFilePath(outputFolderType, outputFolderPath, filename);
+
+				// Check to see if this filename is already in use
+				if (ActiveFilePaths.Contains(_filePath))
+				{
+					// It is, strip the extension
+					string extension = Path.GetExtension(_filePath);
+					string name = Path.GetFileNameWithoutExtension(_filePath);
+					string path = Path.GetDirectoryName(_filePath);
+					string newPath = null;
+					int i = 2;
+					do
+					{
+						const string fmt = "{0} {1}";
+						string newName = String.Format(fmt, name, i++);
+						newPath = Path.Combine(path, newName);
+						newPath = Path.ChangeExtension(newPath, extension);
+					}
+					while (ActiveFilePaths.Contains(newPath));
+					_filePath = newPath;
+				}
+
+				ActiveFilePaths.Add(_filePath);
+
+#if !UNITY_EDITOR && (UNITY_STANDALONE_OSX || UNITY_IOS)
 				if (_outputFolderType != OutputPath.PhotoLibrary)
-				#endif
+#endif
 				{
 					// Create target directory if it doesn't exist
 					String directory = Path.GetDirectoryName(_filePath);
@@ -1694,8 +1884,101 @@ namespace RenderHeads.Media.AVProMovieCapture
 			return result;
 		}
 
+		private bool ValidateEditionFeatures()
+		{
+			bool canContinueCapture = true;
+			if (NativePlugin.IsBasicEdition())
+			{
+				string issues = string.Empty;
+
+				// Abortable issues
+				if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Direct3D12)
+				{
+					issues += "• D3D12 is not supported, please switch to D3D11.  Aborting capture.\n";
+					canContinueCapture = false;
+				}
+				if (this is CaptureFromCamera || this is CaptureFromTexture || this is CaptureFromCamera360 || this is CaptureFromCamera360ODS)
+				{
+					issues += "• Only CaptureFromScreen component is supported.  Aborting capture.\n";
+					canContinueCapture = false;
+				}
+
+				// Continuable issues
+				if (canContinueCapture)
+				{
+					if (SelectedVideoCodec != null && SelectedVideoCodec.Name.IndexOf("H264") < 0)
+					{
+						issues += "• Only H264 video codec supported.  Switching to H264\n";
+						NativeForceVideoCodecIndex = 0;
+						SelectVideoCodec(false);
+					}
+					if (SelectedAudioCodec != null && SelectedAudioCodec.Name.IndexOf("AAC") < 0)
+					{
+						issues += "• Only AAC audio codec supported.  Switching to AAC\n";
+						NativeForceAudioCodecIndex = 0;
+						SelectAudioCodec();
+					}
+					if (!IsRealTime)
+					{
+						issues += "• Non-realtime captures are not supported.  Switching to realtime capture mode.\n";
+						IsRealTime = true;
+					}
+					if (OutputTarget != OutputTarget.VideoFile)
+					{
+						issues += "• Only output to video file is supported.  Switching to video file output.\n";
+						OutputTarget = OutputTarget.VideoFile;
+						FilenameExtension = "mp4";
+						GenerateFilename();
+					}
+					if (AudioCaptureSource != AudioCaptureSource.None && AudioCaptureSource != AudioCaptureSource.Unity)
+					{
+						issues += "• Audio source '" + AudioCaptureSource + "' not supported.  Disabling audio capture.\n";
+						AudioCaptureSource = AudioCaptureSource.None;
+					}
+					if (FrameRate != 30f)
+					{
+						issues += "• Frame rate '" + FrameRate + "' not supported.  Switching to 30 FPS.\n";
+						FrameRate = 30f;
+					}
+					if (GetEncoderHints().videoHints.supportTransparency)
+					{
+						issues += "• Transparent capture not supported.  Disabling transparent capture\n";
+						GetEncoderHints().videoHints.supportTransparency = false;
+					}
+				}
+
+				// Log/Display issues
+				if (!string.IsNullOrEmpty(issues))
+				{
+					string message = "Limitations of Basic Edition reached:\n" + issues + "Please upgrade to use these feature, or visit '" + DocEditionsURL + "' for more information.";
+					if (canContinueCapture)
+					{
+						Debug.LogWarning("[AVProMovieCapture] " + message);
+					}
+					else
+					{
+						Debug.LogError("[AVProMovieCapture] " + message);
+					}
+
+					#if UNITY_EDITOR
+					message = "Limitations of Basic Edition reached:\n\n" + issues + "\nPlease upgrade to use these feature.  View documention for more information.";
+					if (!UnityEditor.EditorUtility.DisplayDialog("AVPro Movie Capture", message, "Ok", "More Info"))
+					{
+						Application.OpenURL(DocEditionsURL);
+					}
+					#endif
+				}
+			}
+			return canContinueCapture;
+		}
+
 		public virtual bool PrepareCapture()
 		{
+			if (!ValidateEditionFeatures())
+			{
+				return false;
+			}
+
 			// Delete file if it already exists
 			if (_outputTarget == OutputTarget.VideoFile && File.Exists(_filePath))
 			{
@@ -1732,10 +2015,10 @@ namespace RenderHeads.Media.AVProMovieCapture
 			else
 			{
 				// Disable vsync
-				#if !UNITY_EDITOR && UNITY_IOS
+				#if !UNITY_EDITOR && (UNITY_IOS || UNITY_ANDROID)
 					if (_allowVSyncDisable)
 					{
-						// iOS doesn't support disabling vsync so use _oldVsyncCount to store the current target framerate.
+						// iOS and Android do not support disabling vsync so use _oldVsyncCount to store the current target framerate.
 						_oldVSyncCount = Application.targetFrameRate;
 						// We want to runs as fast as possible.
 						Application.targetFrameRate = 300;
@@ -1883,6 +2166,12 @@ namespace RenderHeads.Media.AVProMovieCapture
 						Debug.LogWarning("[AVProMovieCapture] Unable to create AudioCapture component in mode " + _audioCaptureSource.ToString());
 					}
 				}
+				else if (_audioCaptureSource == AudioCaptureSource.UnityAudioMixer)
+				{
+					_stats.UnityAudioSampleRate = AudioSettings.outputSampleRate;
+					_stats.UnityAudioChannelCount = UnityAudioCapture.GetUnityAudioChannelCount();
+					_stats.AudioCaptureSource = _audioCaptureSource;
+				}
 				else if (_audioCaptureSource == AudioCaptureSource.Manual)
 				{
 					_stats.UnityAudioSampleRate = _manualAudioSampleRate;
@@ -1909,6 +2198,10 @@ namespace RenderHeads.Media.AVProMovieCapture
 						else if (_audioCaptureSource == AudioCaptureSource.Unity && _unityAudioCapture != null)
 						{
 							info += string.Format(" audio source:'Unity' {0}hz {1} channels", _stats.UnityAudioSampleRate, _stats.UnityAudioChannelCount);
+						}
+						else if (_audioCaptureSource == AudioCaptureSource.UnityAudioMixer)
+						{
+							info += string.Format(" audio source:'AudioMixer' {0}hz {1} channels", _stats.UnityAudioSampleRate, _stats.UnityAudioChannelCount);
 						}
 						else if (_audioCaptureSource == AudioCaptureSource.Manual)
 						{
@@ -1956,6 +2249,9 @@ namespace RenderHeads.Media.AVProMovieCapture
 				hints.colourSpace = (VideoEncoderHints.ColourSpace)QualitySettings.activeColorSpace;
 				hints.sourceWidth = _sourceWidth;
 				hints.sourceHeight = _sourceHeight;
+
+				// Android only
+				hints.androidNoCaptureRotation = _androidNoCaptureRotation;
 
 				_handle = NativePlugin.CreateRecorderVideo(
 					_filePath,
@@ -2010,7 +2306,11 @@ namespace RenderHeads.Media.AVProMovieCapture
 																	 (int)_pixelFormat, _isTopDown, GetEncoderHints().videoHints.supportTransparency, _forceGpuFlush);
 			}
 
-			if (_handle < 0)
+			if (_handle >= 0)
+			{
+				RenderThreadEvent(NativePlugin.PluginEvent.Setup);
+			}
+			else
 			{
 				Debug.LogError("[AVProMovieCapture] Failed to create recorder");
 
@@ -2335,7 +2635,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 					applyPostOperations = true;
 				}
 
-				fileWritingHandler = new FileWritingHandler(_outputTarget, _filePath, _handle, deleteCapture);
+				bool updateMediaGallery = (_outputFolderType == OutputPath.RelativeToPictures || _outputFolderType == OutputPath.RelativeToVideos || _outputFolderType == OutputPath.PhotoLibrary);
+				fileWritingHandler = new FileWritingHandler(_outputTarget, _filePath, _handle, deleteCapture, _finalFilePath, updateMediaGallery);
 				if (_completedFileWritingAction != null)
 				{
 					fileWritingHandler.CompletedFileWritingAction = _completedFileWritingAction;
@@ -2353,7 +2654,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 					}
 
 					// Complete writing immediately
-					fileWritingHandler.Dispose(); fileWritingHandler = null;
+					fileWritingHandler.Dispose();
+					fileWritingHandler = null;
 				}
 				else
 				{
@@ -2367,9 +2669,9 @@ namespace RenderHeads.Media.AVProMovieCapture
 					if (!deleteCapture)
 					{
 						VideoEncoderHints hints = GetEncoderHints().videoHints;
-						if (applyPostOperations && CanApplyPostOperations(_filePath, hints))
+						if (applyPostOperations && CanApplyPostOperations(_filePath, hints, _finalFilePath))
 						{
-							MP4FileProcessing.Options options = CreatePostOperationsOptions(hints);
+							MP4FileProcessing.Options options = CreatePostOperationsOptions(hints, _finalFilePath);
 							fileWritingHandler.SetFilePostProcess(options);
 						}
 					}
@@ -2435,8 +2737,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 			}
 			_oldFixedDeltaTime = 0f;
 
-			#if !UNITY_EDITOR_OSX && UNITY_IOS
-				// iOS doesn't support disabling vsync so _oldVsyncCount is actually the target framerate before we started capturing.
+			#if !UNITY_EDITOR_OSX && (UNITY_IOS || UNITY_ANDROID)
+				// Android and iOS do not support disabling vsync so _oldVsyncCount is actually the target framerate before we started capturing.
 				if (_oldVSyncCount != 0)
 				{
 					Application.targetFrameRate = _oldVSyncCount;
@@ -2460,14 +2762,14 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 			if (applyPostOperations)
 			{
-				ApplyPostOperations(_filePath, GetEncoderHints().videoHints);
+				ApplyPostOperations(_filePath, GetEncoderHints().videoHints, _finalFilePath);
 			}
 		}
 
-		private static MP4FileProcessing.Options CreatePostOperationsOptions(VideoEncoderHints hints)
+		private static MP4FileProcessing.Options CreatePostOperationsOptions(VideoEncoderHints hints, string finalFilePath)
 		{
 			MP4FileProcessing.Options options = new MP4FileProcessing.Options();
-			#if UNITY_EDITOR_WIN || (!UNITY_EDITOR && UNITY_STANDALONE_WIN)
+			#if UNITY_EDITOR_WIN || (!UNITY_EDITOR && (UNITY_STANDALONE_WIN || UNITY_ANDROID))
 			// macOS and iOS don't require fast start postprocess as it is handled internally
 			options.applyFastStart = hints.allowFastStartStreamingPostProcess;
 			#endif
@@ -2483,26 +2785,33 @@ namespace RenderHeads.Media.AVProMovieCapture
 			{
 				options.sphericalVideoLayout = hints.sphericalVideoLayout;
 			}
+
+			options.applyMoveCaptureFile = (finalFilePath != null);
+			if(options.applyMoveCaptureFile)
+			{
+				options.finalCaptureFilePath = finalFilePath;
+			}
+
 			return options;
 		}
 
-		private static bool CanApplyPostOperations(string filePath, VideoEncoderHints hints)
+		private static bool CanApplyPostOperations(string filePath, VideoEncoderHints hints, string finalFilePath)
 		{
 			bool result = false;
 			if (HasExtension(filePath, ".mp4") || HasExtension(filePath, ".mov") && File.Exists(filePath))
 			{
-				result = CreatePostOperationsOptions(hints).HasOptions();
+				result = CreatePostOperationsOptions(hints, finalFilePath).HasOptions();
 			}
 			return result;
 		}
 
-		protected void ApplyPostOperations(string filePath, VideoEncoderHints hints)
+		protected void ApplyPostOperations(string filePath, VideoEncoderHints hints, string finalFilePath)
 		{
-			if (CanApplyPostOperations(filePath, hints))
+			if (CanApplyPostOperations(filePath, hints, finalFilePath))
 			{
 				try
 				{
-					MP4FileProcessing.Options options = CreatePostOperationsOptions(hints);
+					MP4FileProcessing.Options options = CreatePostOperationsOptions(hints, finalFilePath);
 					if (!MP4FileProcessing.ProcessFile(filePath, false, options))
 					{
 						Debug.LogWarning("[AVProMovieCapture] failed to postprocess file: " + filePath);
@@ -2914,7 +3223,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 		public long GetCaptureFileSize()
 		{
 			long result = 0;
-#if UNITY_EDITOR_OSX || (!UNITY_EDITOR && (UNITY_STANDALONE_OSX || UNITY_IOS))
+#if UNITY_EDITOR_OSX || (!UNITY_EDITOR && (UNITY_STANDALONE_OSX || UNITY_IOS || UNITY_ANDROID))
 			result = NativePlugin.GetFileSize(_handle);
 #elif !UNITY_WEBPLAYER
 			if (_handle >= 0 && _outputTarget == OutputTarget.VideoFile)
@@ -3034,6 +3343,9 @@ namespace RenderHeads.Media.AVProMovieCapture
 				_hasCheckedAudioCaptureDeviceAuthorisationStatus = true;
 #if !UNITY_EDITOR_OSX && (UNITY_STANDALONE_OSX || (UNITY_IOS && !UNITY_EDITOR))
 				_audioCaptureDeviceAuthorisationStatus = (AudioCaptureDeviceAuthorisationStatus)NativePlugin.AudioCaptureDeviceAuthorisationStatus();
+#elif UNITY_ANDROID && !UNITY_EDITOR
+				_audioCaptureDeviceAuthorisationStatus = Permission.HasUserAuthorizedPermission(Permission.Microphone) ? AudioCaptureDeviceAuthorisationStatus.Authorised
+				                                                                                                       : AudioCaptureDeviceAuthorisationStatus.NotDetermined;
 #else
 				_audioCaptureDeviceAuthorisationStatus = AudioCaptureDeviceAuthorisationStatus.Unavailable;
 #endif
@@ -3065,6 +3377,11 @@ namespace RenderHeads.Media.AVProMovieCapture
 			NativePlugin.RequestAudioCaptureDeviceAuthorisationDelegate callback = new NativePlugin.RequestAudioCaptureDeviceAuthorisationDelegate(RequestUserAuthorisationToCaptureAudioCallback);
 			System.IntPtr ptr = Marshal.GetFunctionPointerForDelegate(callback);
 			NativePlugin.RequestAudioCaptureDeviceAuthorisation(ptr);
+			return new WaitForAudioCaptureDeviceAuthorisation();
+
+#elif UNITY_ANDROID && !UNITY_EDITOR
+			Permission.RequestUserPermission(Permission.Microphone);
+			RequestUserAuthorisationToCaptureAudioCallback((int)HasUserAuthorisationToCaptureAudio());
 			return new WaitForAudioCaptureDeviceAuthorisation();
 #else
 			return null;

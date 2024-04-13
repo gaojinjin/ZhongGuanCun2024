@@ -157,7 +157,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 				_tintableBox.border.left = _tintableBox.border.right = _tintableBox.border.top = _tintableBox.border.bottom = 0;
 			}
 
-		#if UNITY_IOS && !UNITY_EDITOR_OSX
+		#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
 			float sf = Screen.dpi > 300.0f ? 2.0f : 1.5f;
 		#else
 			float sf = 1.0f;
@@ -598,15 +598,25 @@ namespace RenderHeads.Media.AVProMovieCapture
 						GUILayout.Label("Last file written: '" + System.IO.Path.GetFileName(CaptureBase.LastFileSaved) + "'");
 
 						GUILayout.BeginHorizontal();
+						#if (!UNITY_EDITOR && UNITY_ANDROID)
+						#else
 						if (GUILayout.Button("Browse"))
 						{
 							Utils.ShowInExplorer(CaptureBase.LastFileSaved);
 						}
+						#endif
 						Color prevColor = GUI.color;
 						GUI.color = Color.cyan;
 						if (GUILayout.Button("View Last Capture"))
 						{
+							#if (!UNITY_EDITOR && UNITY_ANDROID)
+							if (CaptureBase.LastFileSaved.ToLower().EndsWith(".mp4"))
+							{
+								Handheld.PlayFullScreenMovie(CaptureBase.LastFileSaved, Color.black, FullScreenMovieControlMode.CancelOnInput);
+							}
+							#else
 							Utils.OpenInDefaultApp(CaptureBase.LastFileSaved);
+							#endif
 						}
 						GUI.color = prevColor;
 

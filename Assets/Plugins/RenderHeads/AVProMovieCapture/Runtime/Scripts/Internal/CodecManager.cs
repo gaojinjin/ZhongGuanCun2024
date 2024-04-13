@@ -12,6 +12,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 		AVFoundation = 0,
 		MediaFoundation = 1,
 		DirectShow = 2,
+		MediaCodec = 3,			// Android
 	}
 
 	public enum CodecType
