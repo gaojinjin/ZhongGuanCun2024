@@ -88,6 +88,7 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         // 点击时执行的方法
         Debug.Log("执行截屏!");
         _movieCapture.OutputTarget = OutputTarget.ImageSequence;
+        _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Half;
         _movieCapture.StartCapture();
         StartCoroutine(WaitOneFrame());
         
@@ -126,6 +127,7 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         Debug.Log("开始录屏!");
 
         _movieCapture.OutputTarget = OutputTarget.VideoFile;
+        _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Original;
         _movieCapture.StartCapture();
     }
     void ShowShareTip(bool mValue) {
