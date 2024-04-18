@@ -6,7 +6,7 @@ using System.IO;
 public class FileUploader : MonoBehaviour
 {
     public string filePathT = "C:/Users/ASUS/Desktop/b.mp4";
-    private string uploadURL = "https://kiwistudio.top/uploads/upload1.php"; // 更改为你的服务器URL
+    private string uploadURL = "https://kiwistudio.top/uploads/upload1.php"; // 锟斤拷锟斤拷为锟斤拷姆锟斤拷锟斤拷锟経RL
     public EasyQRCode easyQRCode;
     IEnumerator UploadFile(string filePath, string uploadURL)
     {
@@ -27,7 +27,7 @@ public class FileUploader : MonoBehaviour
         }
         else
         {
-            Debug.Log("文件上传成功！");
+            Debug.Log("have been upload to server!");
             //upload file and create QR Code
            
             easyQRCode.UpdateQRCode(Path.GetFileName(filePath));
@@ -35,7 +35,7 @@ public class FileUploader : MonoBehaviour
         
     }
 
-    // 调用示例
+    // 锟斤拷锟斤拷示锟斤拷
     //void Start()
     //{
         

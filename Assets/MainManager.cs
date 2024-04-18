@@ -11,7 +11,7 @@ public class MainManager : MonoBehaviour
 {
     public Button countDownBut, backShareBut, tenCountDownBut, fifteenCountDownBut, reGetImageBut, shareQRCodeBut, photoBut;
     public FileUploader fileUpload;
-    private bool hasBeenLongPressed = false; // 用于判断长按是否已经被识别和执行
+    private bool hasBeenLongPressed = false; 
     public bool HasBeenLongPressed { 
         set { hasBeenLongPressed = value;
             if (hasBeenLongPressed)
@@ -24,14 +24,13 @@ public class MainManager : MonoBehaviour
             }
         }
     }
-    public float longPressThreshold = 0.5f; // 长按的时间阈值，可以根据需要调整
+    public float longPressThreshold = 0.5f; 
     [SerializeField] CaptureBase _movieCapture = null;
     public GameObject shareGroupGo, countDownTimeGo, backAndShareGo;
     public TextMeshProUGUI countDownTime;
 
     private void Start()
     {
-        //点击倒计时按钮，开始倒计时，倒计时完成后执行截屏生成图片功能
         //click count down time button ,start count down time ,and then short down screen
         countDownBut.onClick.AddListener(() =>
         {
@@ -63,13 +62,13 @@ public class MainManager : MonoBehaviour
 
 
         });
-        //显示分享界面，show share panel
+        //show share panel
         shareQRCodeBut.onClick.AddListener(() =>
         {
             ShowShareTip(true);
             backAndShareGo.SetActive(false);
         });
-        //拍照功能  take photo button event
+        //take photo button event
         photoBut.onClick.AddListener(() =>
         {
             backAndShareGo.SetActive(false);
@@ -93,26 +92,26 @@ public class MainManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 停止视频录制。stop capture 
+    /// stop capture 
     /// </summary>
     private void StopCapture()
     {
 
         _movieCapture.StopCapture();
-        Debug.Log("退出视频录制");
+        Debug.Log("StopCapture");
         //ShowShareTip(true);
-        //输出最终文件路径
-        Debug.Log("最终生成的文件路径：   " + _movieCapture.LastFilePath);
+        
+        Debug.Log("FilePath   " + _movieCapture.LastFilePath);
 
-        //生成文件之后上传文件到服务器
+        //upload file to server
         fileUpload.UpdateLoad(_movieCapture.LastFilePath);
         backAndShareGo.SetActive(true);
     }
 
     void ClickAction()
     {
-        // 点击时执行的方法
-        Debug.Log("执行截屏!");
+        // 
+        Debug.Log("Start take photo!");
         _movieCapture.OutputTarget = OutputTarget.ImageSequence;
         _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Half;
         _movieCapture.StartCapture();
@@ -122,24 +121,17 @@ public class MainManager : MonoBehaviour
 
     IEnumerator WaitOneFrame()
     {
-        // 确保_movieCapture已经开始捕获
         if (_movieCapture.IsCapturing())
         {
-            // 循环检查NumEncodedFrames直到其值达到1
             while (_movieCapture.CaptureStats.NumEncodedFrames < 1)
             {
-                // 等待一帧
                 yield return null;
             }
-
-            // 当NumEncodedFrames达到1时执行的操作
-            Debug.Log("截屏完成");
-            // 这里可以添加其他操作，例如停止捕获等
+            Debug.Log("Take photo end");
             _movieCapture.StopCapture();
             backAndShareGo.SetActive(true);
-            //ShowShareTip(true);
-            // 停止协程
-            yield break; // 或直接使用 return;
+            fileUpload.UpdateLoad(_movieCapture.LastFilePath);
+            yield break; 
         }
         else
         {
@@ -148,12 +140,11 @@ public class MainManager : MonoBehaviour
 
     }
     /// <summary>
-    /// 开始录制视频，start Capture
+    /// start Capture
     /// </summary>
     private void StartCapture()
     {
-        // 长按时执行的方法（只执行一次）
-        Debug.Log("开始录屏!");
+        Debug.Log("Start capture");
         backAndShareGo.SetActive(false);
         _movieCapture.OutputTarget = OutputTarget.VideoFile;
         _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Original;
