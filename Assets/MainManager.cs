@@ -7,14 +7,26 @@ using UnityEngine.UI;
 using System.IO;
 using TMPro;
 
-public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+public class MainManager : MonoBehaviour
 {
-    public Button countDownBut,backShareBut,tenCountDownBut,fiveCountDownBut,reGetImageBut,shareQRCodeBut;
+    public Button countDownBut, backShareBut, tenCountDownBut, fifteenCountDownBut, reGetImageBut, shareQRCodeBut, photoBut;
     public FileUploader fileUpload;
     private bool hasBeenLongPressed = false; // 用于判断长按是否已经被识别和执行
+    public bool HasBeenLongPressed { 
+        set { hasBeenLongPressed = value;
+            if (hasBeenLongPressed)
+            {
+                StartCapture();
+            }
+            else
+            {
+                StopCapture();
+            }
+        }
+    }
     public float longPressThreshold = 0.5f; // 长按的时间阈值，可以根据需要调整
     [SerializeField] CaptureBase _movieCapture = null;
-    public GameObject shareGroupGo,countDownTimeGo,backAndShareGo;
+    public GameObject shareGroupGo, countDownTimeGo, backAndShareGo;
     public TextMeshProUGUI countDownTime;
 
     private void Start()
@@ -25,66 +37,67 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         {
             countDownTimeGo.SetActive(true);
         });
-        backShareBut.onClick.AddListener(() => {
+        backShareBut.onClick.AddListener(() =>
+        {
             ShowShareTip(false);
         });
 
-        tenCountDownBut.onClick.AddListener(() => {
+        tenCountDownBut.onClick.AddListener(() =>
+        {
             StopAllCoroutines();
             ShowShareTip(false);
             StartCoroutine(CountDownTime(10));
         });
-        fiveCountDownBut.onClick.AddListener(() => {
+        fifteenCountDownBut.onClick.AddListener(() =>
+        {
             StopAllCoroutines();
             ShowShareTip(false);
             StartCoroutine(CountDownTime(5));
         });
-        reGetImageBut.onClick.AddListener(() => {
+        reGetImageBut.onClick.AddListener(() =>
+        {
             backAndShareGo.SetActive(false);
 
 
         });
         //显示分享界面，show share panel
-        shareQRCodeBut.onClick.AddListener(() => {
+        shareQRCodeBut.onClick.AddListener(() =>
+        {
             ShowShareTip(true);
 
+        });
+        //拍照功能  take photo button event
+        photoBut.onClick.AddListener(() =>
+        {
+
+            StopAllCoroutines();
+
+            ShowShareTip(false);
+            ClickAction();
         });
     }
 
     IEnumerator CountDownTime(int sconed)
     {
-        
+
         for (int i = sconed; i > 0; i--)
         {
             countDownTime.text = i.ToString();
             yield return new WaitForSeconds(1);
-            
+
         }
         ClickAction();
     }
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        StopAllCoroutines();
-        hasBeenLongPressed = false; // 初始设置为false
-        ShowShareTip(false);
-        Invoke("CheckIfLongPress", longPressThreshold); // 在阈值时间后检查是否为长按
-    }
 
-    public void OnPointerUp(PointerEventData eventData)
+    /// <summary>
+    /// 停止视频录制。stop capture 
+    /// </summary>
+    private void StopCapture()
     {
-        CancelInvoke("CheckIfLongPress"); // 取消长按检查
 
-        // 如果在松开按钮时长按还未被识别，则执行点击方法
-        if (!hasBeenLongPressed)
-        {
-            ClickAction();
-        }
-        else
-        {
-            _movieCapture.StopCapture();
-            Debug.Log("退出视频录制");
-            //ShowShareTip(true);
-        }
+        _movieCapture.StopCapture();
+        Debug.Log("退出视频录制");
+        //ShowShareTip(true);
         //输出最终文件路径
         Debug.Log("最终生成的文件路径：   " + _movieCapture.LastFilePath);
 
@@ -92,15 +105,6 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         fileUpload.UpdateLoad(_movieCapture.LastFilePath);
     }
 
-    void CheckIfLongPress()
-    {
-        // 仅当长按还未被识别时才执行长按方法
-        if (!hasBeenLongPressed)
-        {
-            LongPressAction();
-            hasBeenLongPressed = true; // 标记长按已经被识别和执行
-        }
-    }
     void ClickAction()
     {
         // 点击时执行的方法
@@ -109,7 +113,7 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Half;
         _movieCapture.StartCapture();
         StartCoroutine(WaitOneFrame());
-        
+
     }
 
     IEnumerator WaitOneFrame()
@@ -136,10 +140,12 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         {
             Debug.LogWarning("_movieCapture has not started capturing.");
         }
-        
-    }
 
-    void LongPressAction()
+    }
+    /// <summary>
+    /// 开始录制视频，start Capture
+    /// </summary>
+    private void StartCapture()
     {
         // 长按时执行的方法（只执行一次）
         Debug.Log("开始录屏!");
@@ -148,7 +154,8 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Original;
         _movieCapture.StartCapture();
     }
-    void ShowShareTip(bool mValue) {
+    void ShowShareTip(bool mValue)
+    {
         shareGroupGo.SetActive(mValue);
         countDownTime.text = 10.ToString();
     }
