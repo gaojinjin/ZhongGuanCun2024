@@ -9,12 +9,12 @@ using TMPro;
 
 public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
-    public Button countDownBut,backShareBut;
+    public Button countDownBut,backShareBut,tenCountDownBut,fiveCountDownBut,reGetImageBut,shareQRCodeBut;
     public FileUploader fileUpload;
     private bool hasBeenLongPressed = false; // 用于判断长按是否已经被识别和执行
     public float longPressThreshold = 0.5f; // 长按的时间阈值，可以根据需要调整
     [SerializeField] CaptureBase _movieCapture = null;
-    public GameObject shareGroupGo;
+    public GameObject shareGroupGo,countDownTimeGo,backAndShareGo;
     public TextMeshProUGUI countDownTime;
 
     private void Start()
@@ -23,19 +23,38 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         //click count down time button ,start count down time ,and then short down screen
         countDownBut.onClick.AddListener(() =>
         {
-            StopAllCoroutines();
-            ShowShareTip(false);
-            StartCoroutine(CountDownTime());
+            countDownTimeGo.SetActive(true);
         });
         backShareBut.onClick.AddListener(() => {
             ShowShareTip(false);
         });
+
+        tenCountDownBut.onClick.AddListener(() => {
+            StopAllCoroutines();
+            ShowShareTip(false);
+            StartCoroutine(CountDownTime(10));
+        });
+        fiveCountDownBut.onClick.AddListener(() => {
+            StopAllCoroutines();
+            ShowShareTip(false);
+            StartCoroutine(CountDownTime(5));
+        });
+        reGetImageBut.onClick.AddListener(() => {
+            backAndShareGo.SetActive(false);
+
+
+        });
+        //显示分享界面，show share panel
+        shareQRCodeBut.onClick.AddListener(() => {
+            ShowShareTip(true);
+
+        });
     }
 
-    IEnumerator CountDownTime()
+    IEnumerator CountDownTime(int sconed)
     {
         
-        for (int i = 10; i > 0; i--)
+        for (int i = sconed; i > 0; i--)
         {
             countDownTime.text = i.ToString();
             yield return new WaitForSeconds(1);
@@ -49,7 +68,6 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         hasBeenLongPressed = false; // 初始设置为false
         ShowShareTip(false);
         Invoke("CheckIfLongPress", longPressThreshold); // 在阈值时间后检查是否为长按
-
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -65,7 +83,7 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         {
             _movieCapture.StopCapture();
             Debug.Log("退出视频录制");
-            ShowShareTip(true);
+            //ShowShareTip(true);
         }
         //输出最终文件路径
         Debug.Log("最终生成的文件路径：   " + _movieCapture.LastFilePath);
@@ -110,7 +128,7 @@ public class MainManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             Debug.Log("NumEncodedFrames has reached 1, stopping the coroutine.");
             // 这里可以添加其他操作，例如停止捕获等
             _movieCapture.StopCapture();
-            ShowShareTip(true);
+            //ShowShareTip(true);
             // 停止协程
             yield break; // 或直接使用 return;
         }
