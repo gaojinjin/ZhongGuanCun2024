@@ -36,6 +36,7 @@ public class MainManager : MonoBehaviour
         countDownBut.onClick.AddListener(() =>
         {
             countDownTimeGo.SetActive(true);
+            backAndShareGo.SetActive(false);
         });
         backShareBut.onClick.AddListener(() =>
         {
@@ -47,12 +48,14 @@ public class MainManager : MonoBehaviour
             StopAllCoroutines();
             ShowShareTip(false);
             StartCoroutine(CountDownTime(10));
+            countDownTimeGo.SetActive(false);
         });
         fifteenCountDownBut.onClick.AddListener(() =>
         {
             StopAllCoroutines();
             ShowShareTip(false);
             StartCoroutine(CountDownTime(15));
+            countDownTimeGo.SetActive(false);
         });
         reGetImageBut.onClick.AddListener(() =>
         {
@@ -64,12 +67,12 @@ public class MainManager : MonoBehaviour
         shareQRCodeBut.onClick.AddListener(() =>
         {
             ShowShareTip(true);
-
+            backAndShareGo.SetActive(false);
         });
         //拍照功能  take photo button event
         photoBut.onClick.AddListener(() =>
         {
-
+            backAndShareGo.SetActive(false);
             StopAllCoroutines();
 
             ShowShareTip(false);
@@ -103,6 +106,7 @@ public class MainManager : MonoBehaviour
 
         //生成文件之后上传文件到服务器
         fileUpload.UpdateLoad(_movieCapture.LastFilePath);
+        backAndShareGo.SetActive(true);
     }
 
     void ClickAction()
@@ -129,9 +133,10 @@ public class MainManager : MonoBehaviour
             }
 
             // 当NumEncodedFrames达到1时执行的操作
-            Debug.Log("NumEncodedFrames has reached 1, stopping the coroutine.");
+            Debug.Log("截屏完成");
             // 这里可以添加其他操作，例如停止捕获等
             _movieCapture.StopCapture();
+            backAndShareGo.SetActive(true);
             //ShowShareTip(true);
             // 停止协程
             yield break; // 或直接使用 return;
@@ -149,7 +154,7 @@ public class MainManager : MonoBehaviour
     {
         // 长按时执行的方法（只执行一次）
         Debug.Log("开始录屏!");
-
+        backAndShareGo.SetActive(false);
         _movieCapture.OutputTarget = OutputTarget.VideoFile;
         _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Original;
         _movieCapture.StartCapture();

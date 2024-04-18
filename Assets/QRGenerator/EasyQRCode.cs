@@ -25,7 +25,7 @@ public class EasyQRCode : MonoBehaviour {
     }
 
     public void ClearRawImage() {
-        Debug.Log("提示二维码生成 ，tip make qr code");
+        //Debug.Log("提示二维码生成 ，tip make qr code");
         qrCodeImage.texture =  whiteQR;
         waitQECode.gameObject.SetActive(true);
     }
