@@ -52,7 +52,7 @@ public class MainManager : MonoBehaviour
         {
             StopAllCoroutines();
             ShowShareTip(false);
-            StartCoroutine(CountDownTime(5));
+            StartCoroutine(CountDownTime(15));
         });
         reGetImageBut.onClick.AddListener(() =>
         {
