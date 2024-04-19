@@ -13,9 +13,12 @@ public class MainManager : MonoBehaviour
 {
     public Button countDownBut, backShareBut, tenCountDownBut, fifteenCountDownBut, reGetImageBut, shareQRCodeBut, photoBut;
     public FileUploader fileUpload;
-    private bool hasBeenLongPressed = false; 
-    public bool HasBeenLongPressed { 
-        set { hasBeenLongPressed = value;
+    private bool hasBeenLongPressed = false;
+    public bool HasBeenLongPressed
+    {
+        set
+        {
+            hasBeenLongPressed = value;
             if (hasBeenLongPressed)
             {
                 StartCapture();
@@ -26,12 +29,12 @@ public class MainManager : MonoBehaviour
             }
         }
     }
-    public float longPressThreshold = 0.5f; 
+    public float longPressThreshold = 0.5f;
     [SerializeField] CaptureBase _movieCapture = null;
     public GameObject shareGroupGo, countDownTimeGo, backAndShareGo;
     public TextMeshProUGUI countDownTime10, countDownTime15;
     public VideoPlayer videoPlayer;
-    public RawImage rawImage;
+    public RawImage videoImage, photoImage;
     private string photoFilePath, videoFilePath;
     private void Start()
     {
@@ -83,7 +86,7 @@ public class MainManager : MonoBehaviour
         });
     }
 
-    IEnumerator CountDownTime(int sconed,TextMeshProUGUI coutDownText)
+    IEnumerator CountDownTime(int sconed, TextMeshProUGUI coutDownText)
     {
 
         for (int i = sconed; i > 0; i--)
@@ -115,6 +118,7 @@ public class MainManager : MonoBehaviour
     void ClickAction()
     {
         // 
+        photoImage.gameObject.SetActive(false);
         Debug.Log("Start take photo!");
         _movieCapture.OutputTarget = OutputTarget.ImageSequence;
         _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Half;
@@ -134,10 +138,13 @@ public class MainManager : MonoBehaviour
             Debug.Log("Take photo end");
             _movieCapture.StopCapture();
             backAndShareGo.SetActive(true);
-            countDownTimeGo.SetActive(true);
+            countDownTimeGo.SetActive(false);
+            
+            StartCoroutine(LoadImageFromLocalFile(_movieCapture.LastFilePath));
             fileUpload.UpdateLoad(_movieCapture.LastFilePath);
-            StartCoroutine(LoadImageFromWeb(_movieCapture.LastFilePath));
-            yield break; 
+
+            //StartCoroutine(LoadImageFromWeb(_movieCapture.LastFilePath));
+            yield break;
         }
         else
         {
@@ -163,22 +170,67 @@ public class MainManager : MonoBehaviour
         countDownTime15.text = 15.ToString();
     }
     /// <summary>
+    /// load local image 
+    /// </summary>
+    /// <param name="filePath">image path</param>
+    /// <returns>unity image</returns> 
+    IEnumerator LoadImageFromLocalFile(string filePath)
+    {
+        videoImage.gameObject.SetActive(false);
+        yield return new WaitForSeconds(1);
+        if (File.Exists(filePath))
+        {
+            byte[] fileData = File.ReadAllBytes(filePath);
+            Texture2D texture = new Texture2D(2, 2);
+            texture.LoadImage(fileData);  // 创建纹理
+            photoImage.texture = texture;  // 将纹理设置到RawImage组件上
+            //photoImage.SetNativeSize();    // 可选: 调整图片大小以匹配其原始尺寸
+            photoImage.gameObject.SetActive(true);
+            
+        }
+        else
+        {
+            Debug.LogError("File not found at: " + filePath);
+        }
+    }
+    /// <summary>
     /// show photo image on rawimage
     /// </summary>
     /// <param name="url">image url</param>
     /// <returns>nothing</returns>
     IEnumerator LoadImageFromWeb(string url)
     {
+        videoPlayer.Stop();
+        photoImage.gameObject.SetActive(true);
+        videoImage.gameObject.SetActive(false);
+
         UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
         yield return request.SendWebRequest();
-        if (request.isNetworkError || request.isHttpError)
-            Debug.LogError(request.error);
+
+        if (request.result == UnityWebRequest.Result.ConnectionError)
+        {
+            Debug.LogError("Network or HTTP Error: " + request.error);
+        }
         else
-            rawImage.texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+        {
+            Texture2D img = DownloadHandlerTexture.GetContent(request);
+            if (img != null)
+            {
+                photoImage.texture = img;
+                Debug.Log("Image loaded successfully!");
+            }
+            else
+            {
+                Debug.LogError("Failed to load texture from URL.");
+            }
+        }
     }
     IEnumerator PlayVideo(string path)
     {
+        photoImage.gameObject.SetActive(false);
         yield return new WaitForSeconds(1);
+        
+        videoImage.gameObject.SetActive(true);
         videoPlayer.url = path;
         videoPlayer.prepareCompleted += Prepared;
         videoPlayer.Prepare();
@@ -187,13 +239,15 @@ public class MainManager : MonoBehaviour
         {
             yield return null;
         }
-        rawImage.texture = videoPlayer.texture;
+        videoImage.texture = videoPlayer.texture;
+        videoPlayer.isLooping = true;
         videoPlayer.Play();
+        
     }
 
     void Prepared(VideoPlayer vp)
     {
-        rawImage.texture = vp.texture;
+        videoImage.texture = vp.texture;
     }
 }
 public enum RecType
