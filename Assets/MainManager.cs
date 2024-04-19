@@ -153,11 +153,12 @@ public class MainManager : MonoBehaviour
 
     }
     /// <summary>
-    /// start Capture
+    /// start video Capture
     /// </summary>
     private void StartCapture()
     {
         Debug.Log("Start capture");
+        videoImage.gameObject.SetActive(false);
         backAndShareGo.SetActive(false);
         _movieCapture.OutputTarget = OutputTarget.VideoFile;
         _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Original;
