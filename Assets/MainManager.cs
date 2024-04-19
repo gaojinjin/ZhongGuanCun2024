@@ -6,6 +6,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.IO;
 using TMPro;
+using UnityEngine.Video;
+using UnityEngine.Networking;
 
 public class MainManager : MonoBehaviour
 {
@@ -27,8 +29,10 @@ public class MainManager : MonoBehaviour
     public float longPressThreshold = 0.5f; 
     [SerializeField] CaptureBase _movieCapture = null;
     public GameObject shareGroupGo, countDownTimeGo, backAndShareGo;
-    public TextMeshProUGUI countDownTime;
-
+    public TextMeshProUGUI countDownTime10, countDownTime15;
+    public VideoPlayer videoPlayer;
+    public RawImage rawImage;
+    private string photoFilePath, videoFilePath;
     private void Start()
     {
         //click count down time button ,start count down time ,and then short down screen
@@ -46,15 +50,15 @@ public class MainManager : MonoBehaviour
         {
             StopAllCoroutines();
             ShowShareTip(false);
-            StartCoroutine(CountDownTime(10));
-            countDownTimeGo.SetActive(false);
+            StartCoroutine(CountDownTime(10, countDownTime10));
+            //countDownTimeGo.SetActive(false);
         });
         fifteenCountDownBut.onClick.AddListener(() =>
         {
             StopAllCoroutines();
             ShowShareTip(false);
-            StartCoroutine(CountDownTime(15));
-            countDownTimeGo.SetActive(false);
+            StartCoroutine(CountDownTime(15, countDownTime15));
+            //countDownTimeGo.SetActive(false);
         });
         reGetImageBut.onClick.AddListener(() =>
         {
@@ -79,12 +83,12 @@ public class MainManager : MonoBehaviour
         });
     }
 
-    IEnumerator CountDownTime(int sconed)
+    IEnumerator CountDownTime(int sconed,TextMeshProUGUI coutDownText)
     {
 
         for (int i = sconed; i > 0; i--)
         {
-            countDownTime.text = i.ToString();
+            coutDownText.text = i.ToString();
             yield return new WaitForSeconds(1);
 
         }
@@ -100,12 +104,12 @@ public class MainManager : MonoBehaviour
         _movieCapture.StopCapture();
         Debug.Log("StopCapture");
         //ShowShareTip(true);
-        
         Debug.Log("FilePath   " + _movieCapture.LastFilePath);
-
         //upload file to server
         fileUpload.UpdateLoad(_movieCapture.LastFilePath);
         backAndShareGo.SetActive(true);
+        countDownTimeGo.SetActive(false);
+        StartCoroutine(PlayVideo(_movieCapture.LastFilePath));
     }
 
     void ClickAction()
@@ -130,7 +134,9 @@ public class MainManager : MonoBehaviour
             Debug.Log("Take photo end");
             _movieCapture.StopCapture();
             backAndShareGo.SetActive(true);
+            countDownTimeGo.SetActive(true);
             fileUpload.UpdateLoad(_movieCapture.LastFilePath);
+            StartCoroutine(LoadImageFromWeb(_movieCapture.LastFilePath));
             yield break; 
         }
         else
@@ -153,7 +159,41 @@ public class MainManager : MonoBehaviour
     void ShowShareTip(bool mValue)
     {
         shareGroupGo.SetActive(mValue);
-        countDownTime.text = 10.ToString();
+        countDownTime10.text = 10.ToString();
+        countDownTime15.text = 15.ToString();
+    }
+    /// <summary>
+    /// show photo image on rawimage
+    /// </summary>
+    /// <param name="url">image url</param>
+    /// <returns>nothing</returns>
+    IEnumerator LoadImageFromWeb(string url)
+    {
+        UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
+        yield return request.SendWebRequest();
+        if (request.isNetworkError || request.isHttpError)
+            Debug.LogError(request.error);
+        else
+            rawImage.texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+    }
+    IEnumerator PlayVideo(string path)
+    {
+        yield return new WaitForSeconds(1);
+        videoPlayer.url = path;
+        videoPlayer.prepareCompleted += Prepared;
+        videoPlayer.Prepare();
+
+        while (!videoPlayer.isPrepared)
+        {
+            yield return null;
+        }
+        rawImage.texture = videoPlayer.texture;
+        videoPlayer.Play();
+    }
+
+    void Prepared(VideoPlayer vp)
+    {
+        rawImage.texture = vp.texture;
     }
 }
 public enum RecType

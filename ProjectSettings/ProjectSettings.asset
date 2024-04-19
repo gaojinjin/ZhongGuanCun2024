@@ -160,6 +160,7 @@ PlayerSettings:
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
     Android: com.KiwiStudio.zhongguancunar
+    Standalone: com.kwiwistudio.zhongguancun
     iPhone: com.kwiwistudio.zhongguancun
   buildNumber:
     Standalone: 0
