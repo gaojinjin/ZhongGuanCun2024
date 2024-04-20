@@ -44,6 +44,8 @@ public class MainManager : MonoBehaviour
             StopAllCoroutines();
             countDownTimeGo.SetActive(true);
             backAndShareGo.SetActive(false);
+            countDownTime10.text = "10";
+            countDownTime15.text = "15";
             tenCountDownBut.gameObject.SetActive(true);
             fifteenCountDownBut.gameObject.SetActive(true);
         });
