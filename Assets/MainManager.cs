@@ -41,6 +41,7 @@ public class MainManager : MonoBehaviour
         //click count down time button ,start count down time ,and then short down screen
         countDownBut.onClick.AddListener(() =>
         {
+            StopAllCoroutines();
             countDownTimeGo.SetActive(true);
             backAndShareGo.SetActive(false);
             tenCountDownBut.gameObject.SetActive(true);
