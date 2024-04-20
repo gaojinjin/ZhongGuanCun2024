@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18018535, g: 0.22559482, b: 0.30677685, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1105,8 +1105,8 @@ MonoBehaviour:
   videoPlayer: {fileID: 2093816029}
   videoBut: {fileID: 2075170795}
   imageBut: {fileID: 1109861243}
-  videoPath: C:\Users\ASUS\Desktop\NewFile\MoveVideo00.mp4
-  imagePath: C:\Users\ASUS\Desktop\NewFile\000.jpg
+  videoPath: /Users/gaojinjin/Downloads/a.mp4
+  imagePath: "/Users/gaojinjin/Downloads/2024\u5E74\u4F1A-\u5C55\u677F2000.jpg"
 --- !u!328 &2093816029
 VideoPlayer:
   m_ObjectHideFlags: 0
@@ -1137,7 +1137,7 @@ VideoPlayer:
   m_EnabledAudioTracks: 01
   m_DirectAudioMutes: 00
   m_ControlledAudioTrackCount: 1
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_SkipOnDrop: 1
   m_Looping: 0
   m_WaitForFirstFrame: 1

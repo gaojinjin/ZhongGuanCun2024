@@ -7,7 +7,7 @@ using UnityEngine.Video;
 
 public class TestmageAndVideo : MonoBehaviour
 {
-    public RawImage rawImage; // ÔÚInspectorÖÐÉèÖÃÕâ¸ö±äÁ¿
+    public RawImage rawImage; // ï¿½ï¿½Inspectorï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public VideoPlayer videoPlayer;
     public Button videoBut, imageBut;
     public string videoPath, imagePath;
@@ -42,7 +42,7 @@ public class TestmageAndVideo : MonoBehaviour
             yield return null;
         }
         rawImage.texture = videoPlayer.texture;
-        videoPlayer.Play();
+        //videoPlayer.Play();
     }
 
     void Prepared(VideoPlayer vp)
