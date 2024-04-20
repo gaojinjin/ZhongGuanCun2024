@@ -43,6 +43,8 @@ public class MainManager : MonoBehaviour
         {
             countDownTimeGo.SetActive(true);
             backAndShareGo.SetActive(false);
+            tenCountDownBut.gameObject.SetActive(true);
+            fifteenCountDownBut.gameObject.SetActive(true);
         });
         backShareBut.onClick.AddListener(() =>
         {
@@ -54,14 +56,14 @@ public class MainManager : MonoBehaviour
             StopAllCoroutines();
             ShowShareTip(false);
             StartCoroutine(CountDownTime(10, countDownTime10));
-            //countDownTimeGo.SetActive(false);
+            fifteenCountDownBut.gameObject.SetActive(false);
         });
         fifteenCountDownBut.onClick.AddListener(() =>
         {
             StopAllCoroutines();
             ShowShareTip(false);
             StartCoroutine(CountDownTime(15, countDownTime15));
-            //countDownTimeGo.SetActive(false);
+            tenCountDownBut.gameObject.SetActive(false);
         });
         reGetImageBut.onClick.AddListener(() =>
         {
