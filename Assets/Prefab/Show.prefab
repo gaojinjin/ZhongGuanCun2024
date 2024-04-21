@@ -5414,7 +5414,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ef21a35be0849d4eb3183523d129a3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: {x: 0, y: 3, z: 0}
+  speed: {x: 0, y: 8, z: 0}
 --- !u!1 &676673374091186327
 GameObject:
   m_ObjectHideFlags: 0
@@ -23118,7 +23118,7 @@ Transform:
   m_GameObject: {fileID: 2672008220086395234}
   serializedVersion: 2
   m_LocalRotation: {x: 0.17029545, y: 0.3375191, z: 0.002717327, w: 0.9257823}
-  m_LocalPosition: {x: 3.79, y: 5.78, z: -8.32}
+  m_LocalPosition: {x: 3.51, y: 5.78, z: -8.69}
   m_LocalScale: {x: 0.03169794, y: 0.03169794, z: 0.031697933}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -28529,7 +28529,7 @@ Transform:
   m_GameObject: {fileID: 2867066810314461466}
   serializedVersion: 2
   m_LocalRotation: {x: -0.23609532, y: -0.6648385, z: -0.100032955, w: 0.7015997}
-  m_LocalPosition: {x: -4.91, y: 5.56, z: -5.65}
+  m_LocalPosition: {x: -4.91, y: 3.99, z: -5.65}
   m_LocalScale: {x: 0.23268116, y: 0.23268121, z: 0.2326812}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -39334,7 +39334,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ef21a35be0849d4eb3183523d129a3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: {x: 0, y: 3, z: 0}
+  speed: {x: 0, y: 8, z: 0}
 --- !u!1 &3563704901482350019
 GameObject:
   m_ObjectHideFlags: 0
@@ -58299,7 +58299,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ef21a35be0849d4eb3183523d129a3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: {x: 0, y: 2, z: 0}
+  speed: {x: 0, y: 6, z: 0}
 --- !u!1 &6834739093796610850
 GameObject:
   m_ObjectHideFlags: 0
@@ -64367,7 +64367,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ef21a35be0849d4eb3183523d129a3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: {x: 0, y: 3, z: 0}
+  speed: {x: 0, y: 10, z: 0}
 --- !u!1 &8254303517282655831
 GameObject:
   m_ObjectHideFlags: 0
@@ -64479,7 +64479,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ef21a35be0849d4eb3183523d129a3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: {x: 0, y: 3, z: 0}
+  speed: {x: 0, y: 6, z: 0}
 --- !u!1 &8409344642501655233
 GameObject:
   m_ObjectHideFlags: 0
@@ -69769,7 +69769,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ef21a35be0849d4eb3183523d129a3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: {x: 0, y: 3, z: 0}
+  speed: {x: 0, y: 6, z: 0}
 --- !u!1 &9068778525934633544
 GameObject:
   m_ObjectHideFlags: 0
