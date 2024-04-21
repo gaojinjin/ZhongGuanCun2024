@@ -101,6 +101,7 @@ public class MainManager : MonoBehaviour
         recordButton.onClick.AddListener(() =>
         {
             countDownText.text = countDownTIme.ToString();
+            countDownTimeGo.SetActive(false);
             StopAllCoroutines();
             tempTime = countDownTIme;
             isRecording = !isRecording;
@@ -233,6 +234,7 @@ IEnumerator CountDownTimeMethend(int countDownTime)
             photoImage.texture = texture;  // 将纹理设置到RawImage组件上
             //photoImage.SetNativeSize();    // 可选: 调整图片大小以匹配其原始尺寸
             photoImage.gameObject.SetActive(true);
+            videoImage.gameObject.SetActive(false);
             
         }
         else
