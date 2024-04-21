@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 public class MainManager : MonoBehaviour
 {
-    public Button countDownBut, backShareBut, tenCountDownBut, fifteenCountDownBut, reGetImageBut, shareQRCodeBut, photoBut;
+    public Button countDownBut, backShareBut, tenCountDownBut, fifteenCountDownBut, reGetImageBut, shareQRCodeBut, photoBut,recordButton;
     public FileUploader fileUpload;
     private bool hasBeenLongPressed = false;
     public bool HasBeenLongPressed
@@ -21,6 +21,7 @@ public class MainManager : MonoBehaviour
             hasBeenLongPressed = value;
             if (hasBeenLongPressed)
             {
+                backAndShareGo.SetActive(false);
                 StartCapture();
             }
             else
@@ -36,11 +37,18 @@ public class MainManager : MonoBehaviour
     public VideoPlayer videoPlayer;
     public RawImage videoImage, photoImage;
     private string photoFilePath, videoFilePath;
+    private bool isRecording = false;
+    public GameObject defultImage, recodingImage;
+    public int countDownTIme = 60, tempTime;
+    public TextMeshProUGUI countDownText;
     private void Start()
     {
         //click count down time button ,start count down time ,and then short down screen
         countDownBut.onClick.AddListener(() =>
         {
+            ResetRercodingEffect();
+            ShowShareTip(false);
+            backAndShareGo.SetActive(false);
             StopAllCoroutines();
             countDownTimeGo.SetActive(true);
             backAndShareGo.SetActive(false);
@@ -83,14 +91,47 @@ public class MainManager : MonoBehaviour
         //take photo button event
         photoBut.onClick.AddListener(() =>
         {
+            
             backAndShareGo.SetActive(false);
             StopAllCoroutines();
-
             ShowShareTip(false);
             ClickAction();
         });
+
+        recordButton.onClick.AddListener(() =>
+        {
+            countDownText.text = countDownTIme.ToString();
+            StopAllCoroutines();
+            tempTime = countDownTIme;
+            isRecording = !isRecording;
+            defultImage.SetActive(!isRecording);
+            recodingImage.SetActive(isRecording);
+            countDownText.gameObject.SetActive(isRecording);
+            HasBeenLongPressed = isRecording;
+            StartCoroutine(CountDownTimeMethend(countDownTIme));
+        });
     }
 
+    void ResetRercodingEffect(){
+
+        HasBeenLongPressed = false;
+        defultImage.SetActive(true);
+        recodingImage.SetActive(false);
+        countDownText.gameObject.SetActive(false);
+        isRecording = false;
+    }
+IEnumerator CountDownTimeMethend(int countDownTime)
+    {
+
+        while (tempTime > 1)
+        {
+            tempTime--;
+            countDownText.text = tempTime.ToString();
+            yield return new WaitForSeconds(1);
+
+        }
+        ResetRercodingEffect();
+    }
     IEnumerator CountDownTime(int sconed, TextMeshProUGUI coutDownText)
     {
 
@@ -122,7 +163,7 @@ public class MainManager : MonoBehaviour
 
     void ClickAction()
     {
-        // 
+        ResetRercodingEffect();
         photoImage.gameObject.SetActive(false);
         Debug.Log("Start take photo!");
         _movieCapture.OutputTarget = OutputTarget.ImageSequence;
