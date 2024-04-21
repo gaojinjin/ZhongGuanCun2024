@@ -44,8 +44,8 @@ public class MainManager : MonoBehaviour
             StopAllCoroutines();
             countDownTimeGo.SetActive(true);
             backAndShareGo.SetActive(false);
-            countDownTime10.text = "10";
-            countDownTime15.text = "15";
+            countDownTime10.text = "10秒拍照";
+            countDownTime15.text = "15秒拍照";
             tenCountDownBut.gameObject.SetActive(true);
             fifteenCountDownBut.gameObject.SetActive(true);
         });
@@ -96,7 +96,7 @@ public class MainManager : MonoBehaviour
 
         for (int i = sconed; i > 0; i--)
         {
-            coutDownText.text = i.ToString();
+            coutDownText.text = i+"秒拍照";
             yield return new WaitForSeconds(1);
 
         }
