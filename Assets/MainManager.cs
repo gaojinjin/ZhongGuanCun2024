@@ -211,7 +211,7 @@ IEnumerator CountDownTimeMethend(int countDownTime)
         videoImage.gameObject.SetActive(false);
         backAndShareGo.SetActive(false);
         _movieCapture.OutputTarget = OutputTarget.VideoFile;
-        _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Original;
+        _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Half;
         _movieCapture.StartCapture();
     }
     void ShowShareTip(bool mValue)

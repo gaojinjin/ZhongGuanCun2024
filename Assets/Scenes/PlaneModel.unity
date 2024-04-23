@@ -3887,7 +3887,7 @@ MonoBehaviour:
   _frameRate: 30
   _timelapseScale: 1
   _frameUpdateMode: 0
-  _downScale: 1
+  _downScale: 2
   _maxVideoSize: {x: 0, y: 0}
   _forceVideoCodecIndexWindows: -1
   _forceVideoCodecIndexMacOS: 0
@@ -3921,7 +3921,7 @@ MonoBehaviour:
   _imageSequenceFormatMacOS: 0
   _imageSequenceFormatIOS: 0
   _imageSequenceFormatAndroid: 0
-  _renderResolution: 19
+  _renderResolution: 11
   _renderSize: {x: 1, y: 1}
   _renderAntiAliasing: -1
   _useMotionBlur: 0
