@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18018535, g: 0.22559482, b: 0.30677685, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2194,7 +2194,7 @@ MonoBehaviour:
   photoImage: {fileID: 170709778}
   defultImage: {fileID: 1768008089}
   recodingImage: {fileID: 336328824}
-  countDownTIme: 60
+  countDownTIme: 15
   tempTime: 0
   countDownText: {fileID: 563073658}
 --- !u!1 &948998126
