@@ -2,20 +2,28 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Xagobah
   m_Shader: {fileID: 4800000, guid: 9d0e4e3129daa3f40bb9131d515f3d2f, type: 3}
-  m_ShaderKeywords: _ENABLEATMOSPHERE_ON _ENABLECITIES_ON _ENABLECLOUDS_ON _ENABLEWATER_ON
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - _ENABLEATMOSPHERE_ON
+  - _ENABLECITIES_ON
+  - _ENABLECLOUDS_ON
+  - _ENABLEWATER_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -75,6 +83,7 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    m_Ints: []
     m_Floats:
     - _AlphaClip: 0
     - _Blend: 0
@@ -122,10 +131,10 @@ Material:
     - _Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     - _ColorA: {r: 4.541205, g: 4.541205, b: 4.541205, a: 0.41568628}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _IlluminationAmbient: {r: 0.8207547, g: 0.8207547, b: 0.8207547, a: 0}
+    - _IlluminationAmbient: {r: 0.61574405, g: 0.68235296, b: 0.9528302, a: 0}
     - _LightSource: {r: 7004.913, g: 7098.083, b: 0.029130807, a: 0}
     - _ShadowColorA: {r: 0.18178178, g: 0.49746677, b: 0.8962264, a: 0.38431373}
-    - _SkyblendA: {r: 0.55917996, g: 0.6696877, b: 0.766, a: 0}
+    - _SkyblendA: {r: 0.36320752, g: 0.7060959, b: 1, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _WaterColor: {r: 0.14470401, g: 0.22769603, b: 0.266, a: 0.18039216}
   m_BuildTextureStacks: []

@@ -102,7 +102,6 @@ public class MainManager : MonoBehaviour
         {
             countDownText.text = countDownTIme.ToString();
             countDownTimeGo.SetActive(false);
-            StopAllCoroutines();
             tempTime = countDownTIme;
             isRecording = !isRecording;
             defultImage.SetActive(!isRecording);
@@ -110,6 +109,10 @@ public class MainManager : MonoBehaviour
             countDownText.gameObject.SetActive(isRecording);
             HasBeenLongPressed = isRecording;
             StartCoroutine(CountDownTimeMethend(countDownTIme));
+            if (!isRecording)
+            {
+                StopAllCoroutines();
+            }
         });
     }
 
