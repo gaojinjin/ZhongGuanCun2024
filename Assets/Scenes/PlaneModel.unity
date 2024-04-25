@@ -3873,7 +3873,7 @@ MonoBehaviour:
     videoHints:
       averageBitrate: 0
       maximumBitrate: 0
-      quality: 0.3
+      quality: 0.2
       keyframeInterval: 0
       allowFastStartStreamingPostProcess: 1
       supportTransparency: 0
@@ -3889,7 +3889,7 @@ MonoBehaviour:
       sourceHeight: 0
       androidNoCaptureRotation: 0
     imageHints:
-      quality: 0.85
+      quality: 0.2
       supportTransparency: 0
       colourSpace: -1
       sourceWidth: 0
@@ -3898,7 +3898,7 @@ MonoBehaviour:
     videoHints:
       averageBitrate: 0
       maximumBitrate: 0
-      quality: 0.3
+      quality: 0.2
       keyframeInterval: 0
       allowFastStartStreamingPostProcess: 1
       supportTransparency: 0
@@ -3914,7 +3914,7 @@ MonoBehaviour:
       sourceHeight: 0
       androidNoCaptureRotation: 0
     imageHints:
-      quality: 0.85
+      quality: 0.2
       supportTransparency: 0
       colourSpace: -1
       sourceWidth: 0
@@ -4003,7 +4003,7 @@ MonoBehaviour:
   _forceAudioInputDeviceIndex: 0
   _manualAudioSampleRate: 48000
   _manualAudioChannelCount: 2
-  _outputTarget: 0
+  _outputTarget: 1
   _outputFolderType: 7
   _outputFolderPath: Captures
   _filenamePrefix: MovieCapture
@@ -4014,8 +4014,8 @@ MonoBehaviour:
   _imageSequenceStartFrame: 0
   _imageSequenceZeroDigits: 6
   _imageSequenceFormatWindows: 0
-  _imageSequenceFormatMacOS: 0
-  _imageSequenceFormatIOS: 0
+  _imageSequenceFormatMacOS: 1
+  _imageSequenceFormatIOS: 1
   _imageSequenceFormatAndroid: 0
   _renderResolution: 19
   _renderSize: {x: 1, y: 1}
