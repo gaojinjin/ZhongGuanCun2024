@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.UI;
-using UnityEngine.AddressableAssets;
 
 namespace UnityEngine.XR.ARFoundation.Samples
 {

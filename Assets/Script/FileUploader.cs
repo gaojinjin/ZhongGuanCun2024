@@ -11,6 +11,7 @@ public class FileUploader : MonoBehaviour
     IEnumerator UploadFile(string filePath, string uploadURL)
     {
         easyQRCode.ClearRawImage();
+        easyQRCode.UpdateQRCode(Path.GetFileName(filePath));
         yield return new WaitForSeconds(1);
         //filePath = filePath.Replace("\\", "/");
         //filePath = filePath.Replace("//", "/");
@@ -29,8 +30,8 @@ public class FileUploader : MonoBehaviour
         {
             Debug.Log("have been upload to server!");
             //upload file and create QR Code
-           
-            easyQRCode.UpdateQRCode(Path.GetFileName(filePath));
+
+            easyQRCode.waitQECode.gameObject.SetActive(false);
         }
         
     }

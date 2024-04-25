@@ -177,10 +177,10 @@ Material:
     - _ColorTransparency: {r: 3.4808812, g: 3.4808812, b: 3.4808812, a: 0.39607844}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EvenigColor: {r: 0.29799998, g: 0.10836363, b: 0, a: 0}
-    - _IlluminationAmbient: {r: 0.042933334, g: 0.06265361, b: 0.09019608, a: 1}
+    - _IlluminationAmbient: {r: 0.7490196, g: 0, b: 0.46666658, a: 1}
     - _LightSource: {r: 7004.913, g: 7098.083, b: 0.029130807, a: 0}
     - _ShadowColor: {r: 0.07063498, g: 0.10829547, b: 0.255, a: 1}
-    - _ShadowColorA: {r: 0, g: 0.118973784, b: 0.41099995, a: 0}
+    - _ShadowColorA: {r: 0, g: 0.118973754, b: 0.68235296, a: 0}
     - _ShadowsColorIntensity: {r: 0.30828, g: 0.62634665, b: 0.734, a: 1}
     - _SkyblendA: {r: 0.55917996, g: 0.6696877, b: 0.766, a: 0}
     - _SunsetColor: {r: 0.3685, g: 0.55275, b: 0.737, a: 0}

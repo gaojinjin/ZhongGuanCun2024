@@ -13,7 +13,7 @@ public class EasyQRCode : MonoBehaviour {
     public TextMeshProUGUI waitQECode;
     public void UpdateQRCode(string url)
     {
-        waitQECode.gameObject.SetActive(false);
+        waitQECode.gameObject.SetActive(true);
         // Debug.Log(" url  info  "+ url);
         // Example usage of QR Generator
         // The text can be any string, link or other QR Code supported string
