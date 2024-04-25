@@ -70207,6 +70207,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: deng_01
       objectReference: {fileID: 0}
+    - target: {fileID: 18295550616622435, guid: 8ba2756fb1cb701489fe589a8efcd57e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 795781540524658649, guid: 8ba2756fb1cb701489fe589a8efcd57e, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -70272,6 +70276,10 @@ PrefabInstance:
     - target: {fileID: 18295550616622435, guid: 8ba2756fb1cb701489fe589a8efcd57e, type: 3}
       propertyPath: m_Name
       value: deng_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 18295550616622435, guid: 8ba2756fb1cb701489fe589a8efcd57e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 795781540524658649, guid: 8ba2756fb1cb701489fe589a8efcd57e, type: 3}
       propertyPath: m_RootOrder
