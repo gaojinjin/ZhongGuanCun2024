@@ -3898,7 +3898,7 @@ MonoBehaviour:
     videoHints:
       averageBitrate: 0
       maximumBitrate: 0
-      quality: 1
+      quality: 0.5
       keyframeInterval: 0
       allowFastStartStreamingPostProcess: 1
       supportTransparency: 0
@@ -3987,7 +3987,7 @@ MonoBehaviour:
   _maxVideoSize: {x: 0, y: 0}
   _forceVideoCodecIndexWindows: -1
   _forceVideoCodecIndexMacOS: 0
-  _forceVideoCodecIndexIOS: 0
+  _forceVideoCodecIndexIOS: 2
   _forceVideoCodecIndexAndroid: 0
   _forceAudioCodecIndexWindows: -1
   _forceAudioCodecIndexMacOS: 0
