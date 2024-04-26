@@ -13,23 +13,7 @@ public class MainManager : MonoBehaviour
 {
     public Button countDownBut, backShareBut, tenCountDownBut, fifteenCountDownBut, reGetImageBut, shareQRCodeBut, photoBut,recordButton;
     public FileUploader fileUpload;
-    private bool hasBeenLongPressed = false;
-    public bool HasBeenLongPressed
-    {
-        set
-        {
-            hasBeenLongPressed = value;
-            if (hasBeenLongPressed)
-            {
-                backAndShareGo.SetActive(false);
-                StartCapture();
-            }
-            else
-            {
-                StopCapture();
-            }
-        }
-    }
+    
     public float longPressThreshold = 0.5f;
     [SerializeField] CaptureBase _movieCapture = null;
     public GameObject shareGroupGo, countDownTimeGo, backAndShareGo;
@@ -107,18 +91,22 @@ public class MainManager : MonoBehaviour
             defultImage.SetActive(!isRecording);
             recodingImage.SetActive(isRecording);
             countDownText.gameObject.SetActive(isRecording);
-            HasBeenLongPressed = isRecording;
             StartCoroutine(CountDownTimeMethend(countDownTIme));
             if (!isRecording)
             {
                 StopAllCoroutines();
+                StopCapture();
             }
+            else{
+
+                StartCapture();
+            }
+
         });
     }
 
     void ResetRercodingEffect(){
 
-        HasBeenLongPressed = false;
         defultImage.SetActive(true);
         recodingImage.SetActive(false);
         countDownText.gameObject.SetActive(false);
@@ -134,6 +122,7 @@ IEnumerator CountDownTimeMethend(int countDownTime)
             yield return new WaitForSeconds(1);
 
         }
+        StopCapture();
         ResetRercodingEffect();
     }
     IEnumerator CountDownTime(int sconed, TextMeshProUGUI coutDownText)
@@ -162,12 +151,14 @@ IEnumerator CountDownTimeMethend(int countDownTime)
         fileUpload.UpdateLoad(_movieCapture.LastFilePath);
         backAndShareGo.SetActive(true);
         countDownTimeGo.SetActive(false);
+        //Debug.Log("show image");
         StartCoroutine(PlayVideo(_movieCapture.LastFilePath));
     }
 
     void ClickAction()
     {
         ResetRercodingEffect();
+        _movieCapture.StopCapture();
         photoImage.gameObject.SetActive(false);
         Debug.Log("Start take photo!");
         _movieCapture.OutputTarget = OutputTarget.ImageSequence;
@@ -238,43 +229,10 @@ IEnumerator CountDownTimeMethend(int countDownTime)
             //photoImage.SetNativeSize();    // 可选: 调整图片大小以匹配其原始尺寸
             photoImage.gameObject.SetActive(true);
             videoImage.gameObject.SetActive(false);
-            
         }
         else
         {
             Debug.LogError("File not found at: " + filePath);
-        }
-    }
-    /// <summary>
-    /// show photo image on rawimage
-    /// </summary>
-    /// <param name="url">image url</param>
-    /// <returns>nothing</returns>
-    IEnumerator LoadImageFromWeb(string url)
-    {
-        videoPlayer.Stop();
-        photoImage.gameObject.SetActive(true);
-        videoImage.gameObject.SetActive(false);
-
-        UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
-        yield return request.SendWebRequest();
-
-        if (request.result == UnityWebRequest.Result.ConnectionError)
-        {
-            Debug.LogError("Network or HTTP Error: " + request.error);
-        }
-        else
-        {
-            Texture2D img = DownloadHandlerTexture.GetContent(request);
-            if (img != null)
-            {
-                photoImage.texture = img;
-                Debug.Log("Image loaded successfully!");
-            }
-            else
-            {
-                Debug.LogError("Failed to load texture from URL.");
-            }
         }
     }
     IEnumerator PlayVideo(string path)
@@ -286,7 +244,7 @@ IEnumerator CountDownTimeMethend(int countDownTime)
         videoPlayer.url = path;
         videoPlayer.prepareCompleted += Prepared;
         videoPlayer.Prepare();
-
+        Debug.Log("Video playing  isPrepared");
         while (!videoPlayer.isPrepared)
         {
             yield return null;
@@ -294,7 +252,7 @@ IEnumerator CountDownTimeMethend(int countDownTime)
         videoImage.texture = videoPlayer.texture;
         videoPlayer.isLooping = true;
         videoPlayer.Play();
-        
+        Debug.Log("Video playing");
     }
 
     void Prepared(VideoPlayer vp)
