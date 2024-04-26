@@ -171,7 +171,7 @@ IEnumerator CountDownTimeMethend(int countDownTime)
         photoImage.gameObject.SetActive(false);
         Debug.Log("Start take photo!");
         _movieCapture.OutputTarget = OutputTarget.ImageSequence;
-        _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Half;
+        _movieCapture.ResolutionDownScale = CaptureBase.DownScale.Original;
         _movieCapture.StartCapture();
         StartCoroutine(WaitOneFrame());
 
