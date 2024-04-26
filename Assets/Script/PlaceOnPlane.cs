@@ -66,6 +66,7 @@ namespace UnityEngine.XR.ARFoundation.Samples
                 if (spawnedObject == null)
                 {
                     spawnedObject = Instantiate(m_PlacedPrefab, hitPose.position, hitPose.rotation);
+                    //点击地面的时候 隐藏线条现实   set line  enable  false
                 }
                 else
                 {
