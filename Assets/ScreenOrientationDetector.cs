@@ -28,6 +28,6 @@ public class ScreenOrientationDetector : MonoBehaviour
         // 在这里添加您的逻辑，处理屏幕方向变化
         float widthRect = m_RectT.rect.width;
         float hightRect = m_RectT.rect.height;
-        //m_RectT.rect = new Rect(hightRect, widthRect);
+        m_RectT.sizeDelta = new Vector2(hightRect, widthRect );
     }
 }
