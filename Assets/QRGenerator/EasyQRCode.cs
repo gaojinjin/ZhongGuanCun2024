@@ -17,7 +17,7 @@ public class EasyQRCode : MonoBehaviour {
         // Debug.Log(" url  info  "+ url);
         // Example usage of QR Generator
         // The text can be any string, link or other QR Code supported string
-        textToEncode = "https://101.126.83.110/uploads/GetInfo.php?file=uploads/" + url;
+        textToEncode = "http://101.126.83.110/uploads/GetInfo.php?file=uploads/" + url;
         Texture2D qrTexture = QRGenerator.EncodeString(textToEncode, darkColor, lightColor);
 
         // Set the generated texture as the mainTexture on the quad
