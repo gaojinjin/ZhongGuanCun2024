@@ -3889,7 +3889,7 @@ MonoBehaviour:
       sourceHeight: 0
       androidNoCaptureRotation: 0
     imageHints:
-      quality: 0.2
+      quality: 0.6
       supportTransparency: 0
       colourSpace: -1
       sourceWidth: 0
