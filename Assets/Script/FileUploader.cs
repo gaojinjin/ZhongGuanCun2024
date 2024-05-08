@@ -6,7 +6,7 @@ using System.IO;
 public class FileUploader : MonoBehaviour
 {
     public string filePathT = "C:/Users/ASUS/Desktop/b.mp4";
-    private string uploadURL = "http://101.126.83.110/uploads/upload1.php"; // ����Ϊ��ķ�����URL
+    private string uploadURL = "https://kiwistudio.cloudns.org/uploads/upload1.php"; // ����Ϊ��ķ�����URL
     public EasyQRCode easyQRCode;
     IEnumerator UploadFile(string filePath, string uploadURL)
     {

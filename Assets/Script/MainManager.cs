@@ -244,7 +244,7 @@ IEnumerator CountDownTimeMethend(int countDownTime)
         videoPlayer.url = path;
         videoPlayer.prepareCompleted += Prepared;
         videoPlayer.Prepare();
-        Debug.Log("Video playing  isPrepared");
+        //Debug.Log("Video playing  isPrepared");
         while (!videoPlayer.isPrepared)
         {
             yield return null;
@@ -252,7 +252,7 @@ IEnumerator CountDownTimeMethend(int countDownTime)
         videoImage.texture = videoPlayer.texture;
         videoPlayer.isLooping = true;
         videoPlayer.Play();
-        Debug.Log("Video playing");
+        //Debug.Log("Video playing");
     }
 
     void Prepared(VideoPlayer vp)
