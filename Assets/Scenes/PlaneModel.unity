@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18018535, g: 0.22559482, b: 0.30677685, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2630,6 +2630,7 @@ MonoBehaviour:
   qrCodeImage: {fileID: 131339354}
   whiteQR: {fileID: 2800000, guid: b9b818101de604a44949f64d8f52e407, type: 3}
   waitQECode: {fileID: 2068331813}
+  ipAddress: 
 --- !u!4 &1047269356
 Transform:
   m_ObjectHideFlags: 0
@@ -2801,7 +2802,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 272.0005}
+  m_AnchoredPosition: {x: 0, y: 272}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1103505521
@@ -4192,7 +4193,7 @@ MonoBehaviour:
   _forceAudioInputDeviceIndex: 0
   _manualAudioSampleRate: 48000
   _manualAudioChannelCount: 2
-  _outputTarget: 0
+  _outputTarget: 1
   _outputFolderType: 7
   _outputFolderPath: Captures
   _filenamePrefix: MovieCapture

@@ -2,12 +2,16 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 using System.IO;
+using Unity.VisualScripting;
+using System.Net;
 
 public class FileUploader : MonoBehaviour
 {
     public string filePathT = "C:/Users/ASUS/Desktop/b.mp4";
     private string uploadURL = "https://kiwistudio.cloudns.org/uploads/upload1.php"; // ����Ϊ��ķ�����URL
     public EasyQRCode easyQRCode;
+    
+    
     IEnumerator UploadFile(string filePath, string uploadURL)
     {
         easyQRCode.ClearRawImage();
@@ -33,17 +37,20 @@ public class FileUploader : MonoBehaviour
 
             easyQRCode.waitQECode.gameObject.SetActive(false);
         }
-        
+
     }
 
     // ����ʾ��
     //void Start()
     //{
-        
+
     //    StartCoroutine(UploadFile(filePathT, uploadURL));
     //}
     public void UpdateLoad(string mFilePath)
     {
+        uploadURL = $"https://{easyQRCode.ipAddress}/uploads/upload1.php";
         StartCoroutine(UploadFile(mFilePath, uploadURL));
     }
+
+    
 }
